@@ -1,3 +1,4 @@
+#include <SDL3/SDL_render.h>
 #define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -7,6 +8,7 @@ typedef struct {
     SDL_Window *window;
     SDL_Renderer *renderer;
     bool running;
+    SDL_FRect paddle;
 } GameContext;
 
 // 2. Setup: This runs exactly once when the program starts
@@ -30,6 +32,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     // Enable VSync so we don't melt the GPU
     SDL_SetRenderVSync(ctx->renderer, 1);
 
+    // Initialize paddle
+    ctx->paddle.w = 100.0f;
+    ctx->paddle.h = 20.0f;
+    ctx->paddle.x = (800.0f - ctx->paddle.w) / 2.0f; // Center it
+    ctx->paddle.y = 560.0f;                          // Near the bottom
+
     return SDL_APP_CONTINUE;
 }
 
@@ -49,7 +57,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
     SDL_RenderClear(ctx->renderer);
 
-    // B. (We will put our drawing code here in Step 2)
+    // B. Draw the paddle
+    SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); // white
+    SDL_RenderFillRect(ctx->renderer, &ctx->paddle);
 
     // C. Show the result on screen
     SDL_RenderPresent(ctx->renderer);
