@@ -7,6 +7,14 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+#define PADDLE_WIDTH 100.0f
+#define PADDLE_HEIGHT 20.0f
+#define PADDLE_Y 560.0f
+#define PADDLE_SPEED 7.0f
+#define BALL_SIZE 16.0f
+
 typedef struct {
     SDL_FRect rect;
     float dx;
@@ -40,7 +48,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     *appstate = ctx;
 
     // Create a 800x600 window and a renderer with VSync
-    if (!SDL_CreateWindowAndRenderer("Breakout SDL3", 800, 600, 0, &ctx->window, &ctx->renderer)) {
+    if (!SDL_CreateWindowAndRenderer("Breakout SDL3", SCREEN_WIDTH, SCREEN_HEIGHT, 0, &ctx->window,
+                                     &ctx->renderer)) {
         return SDL_APP_FAILURE;
     }
 
@@ -48,13 +57,13 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_SetRenderVSync(ctx->renderer, 1);
 
     // Initialize paddle
-    ctx->paddle.w = 100.0f;
-    ctx->paddle.h = 20.0f;
-    ctx->paddle.x = (800.0f - ctx->paddle.w) / 2.0f; // Center it
-    ctx->paddle.y = 560.0f;                          // Near the bottom
-                                                     //
+    ctx->paddle.w = PADDLE_WIDTH;
+    ctx->paddle.h = PADDLE_HEIGHT;
+    ctx->paddle.x = (SCREEN_WIDTH - ctx->paddle.w) / 2.0f; // Center it
+    ctx->paddle.y = PADDLE_Y;                              // Near the bottom
+                                                           //
 
-    ctx->ball.rect = (SDL_FRect){0, 0, 20.0f, 20.0f};
+    ctx->ball.rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
     ctx->ball.dx = 4.0f;
     ctx->ball.dy = -4.0f;
     ctx->ball_launched = false;
@@ -100,12 +109,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // Movement and collision
 
     // Move the paddle
-    float paddle_speed = 10.0f; // TODO: add delta time
+    float paddle_speed = PADDLE_SPEED; // TODO: add delta time
     if (ctx->left_pressed)
         ctx->paddle.x -= paddle_speed;
     if (ctx->right_pressed)
         ctx->paddle.x += paddle_speed;
 
+    // Move the ball
     if (!ctx->ball_launched) {
         // put the ball in the middle of the paddle
         ctx->ball.rect.x = ctx->paddle.x + (ctx->paddle.w / 2.0f) - (ctx->ball.rect.w / 2.0f);
@@ -115,6 +125,13 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
         // Move the ball
         ctx->ball.rect.x += ctx->ball.dx;
         ctx->ball.rect.y += ctx->ball.dy;
+
+        // Wall collision
+
+        if (ctx->ball.rect.x <= 0 || ctx->ball.rect.x >= SCREEN_WIDTH - ctx->ball.rect.w)
+            ctx->ball.dx *= -1;
+        if (ctx->ball.rect.y <= 0)
+            ctx->ball.dy *= -1;
     }
 
     // Collision uses the rect inside the ball struct
@@ -126,8 +143,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // Check screen boundaries
     if (ctx->paddle.x < 0)
         ctx->paddle.x = 0;
-    if (ctx->paddle.x > 800 - ctx->paddle.w)
-        ctx->paddle.x = 800 - ctx->paddle.w;
+    if (ctx->paddle.x > SCREEN_WIDTH - ctx->paddle.w)
+        ctx->paddle.x = SCREEN_WIDTH - ctx->paddle.w;
 
     // A. Clear the screen (Black)
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
