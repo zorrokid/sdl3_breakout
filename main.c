@@ -15,11 +15,22 @@
 #define PADDLE_SPEED 7.0f
 #define BALL_SIZE 16.0f
 
+#define BRICK_ROWS 5
+#define BRICK_COLS 10
+#define BRICK_WIDTH 75.0f
+#define BRICK_HEIGHT 20.0f
+#define BRICK_PADDING 5.0f
+
 typedef struct {
     SDL_FRect rect;
     float dx;
     float dy;
 } Ball;
+
+typedef struct {
+    SDL_FRect rect;
+    bool active;
+} Brick;
 
 // 1. The "Brain" of our game - holds all our data
 typedef struct {
@@ -32,7 +43,38 @@ typedef struct {
 
     bool left_pressed;
     bool right_pressed;
+
+    Brick bricks[BRICK_ROWS * BRICK_COLS];
 } GameContext;
+
+void init_bricks(GameContext *ctx) {
+    float total_width = (BRICK_COLS * (BRICK_WIDTH + BRICK_PADDING)) - BRICK_PADDING;
+    // Center the bricks horizontally
+    float start_x = (SCREEN_WIDTH - total_width) / 2.0f;
+    float start_y = 50.0f; // Start 50 pixels from the top
+
+    for (int row = 0; row < BRICK_ROWS; ++row) {
+        for (int col = 0; col < BRICK_COLS; ++col) {
+            int i = row * BRICK_COLS + col;
+            ctx->bricks[i].rect.x = start_x + (col * (BRICK_WIDTH + BRICK_PADDING));
+            ctx->bricks[i].rect.y = start_y + (row * (BRICK_HEIGHT + BRICK_PADDING));
+            ctx->bricks[i].rect.w = BRICK_WIDTH;
+            ctx->bricks[i].rect.h = BRICK_HEIGHT;
+            ctx->bricks[i].active = true;
+        }
+    }
+}
+
+void render_bricks(GameContext *ctx) {
+    for (int i = 0; i < BRICK_ROWS * BRICK_COLS; i++) {
+        if (ctx->bricks[i].active) {
+            int row = i / BRICK_COLS;
+            // Color based on row
+            SDL_SetRenderDrawColor(ctx->renderer, 255 - (row * 40), 0, row * 40, 255);
+            SDL_RenderFillRect(ctx->renderer, &ctx->bricks[i].rect);
+        }
+    }
+}
 
 // 2. Setup: This runs exactly once when the program starts
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -66,6 +108,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ctx->ball.dx = 4.0f;
     ctx->ball.dy = -4.0f;
     ctx->ball_launched = false;
+
+    init_bricks(ctx);
 
     return SDL_APP_CONTINUE;
 }
@@ -140,6 +184,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
             // snap the ball to the top of the paddle to prevent sticking
             ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h - 1.0f;
         }
+
+        if (ctx->ball.rect.y > SCREEN_HEIGHT) {
+            // Ball fell below the screen, reset it
+            ctx->ball_launched = false;
+        }
     }
 
     // Collision uses the rect inside the ball struct
@@ -165,6 +214,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // Draw ball
     SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 0, 255); // yellow
     SDL_RenderFillRect(ctx->renderer, &ctx->ball.rect);
+
+    render_bricks(ctx);
 
     // C. Show the result on screen
     SDL_RenderPresent(ctx->renderer);
