@@ -1,6 +1,12 @@
 #include "ball.h"
 #include "common.h"
 
+void init_ball(Ball *ball) {
+    ball->rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
+    ball->dx = 4.0f;
+    ball->dy = -4.0f;
+}
+
 void move_ball(Ball *ball, SDL_FRect *paddle, bool *ball_launched) {
     if (!*ball_launched) {
         // put the ball in the middle of the paddle

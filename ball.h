@@ -10,6 +10,7 @@ typedef struct {
     float dy;
 } Ball;
 
+void init_ball(Ball *ball);
 void move_ball(Ball *ball, SDL_FRect *paddle, bool *ball_launched);
 
 #endif // BALL_H

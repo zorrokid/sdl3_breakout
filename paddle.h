@@ -12,6 +12,7 @@ typedef struct {
     SDL_FRect rect;
 } Paddle;
 
+void init_paddle(Paddle *paddle);
 void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed);
 
 #endif // PADDLE_H

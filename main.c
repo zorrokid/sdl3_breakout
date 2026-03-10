@@ -46,18 +46,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     // Enable VSync so we don't melt the GPU
     SDL_SetRenderVSync(ctx->renderer, 1);
 
-    // Initialize paddle
-    ctx->paddle.rect.w = PADDLE_WIDTH;
-    ctx->paddle.rect.h = PADDLE_HEIGHT;
-    ctx->paddle.rect.x = (SCREEN_WIDTH - ctx->paddle.rect.w) / 2.0f; // Center it
-    ctx->paddle.rect.y = PADDLE_Y;                                   // Near the bottom
-
-    ctx->ball.rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
-    ctx->ball.dx = 4.0f;
-    ctx->ball.dy = -4.0f;
-    ctx->ball_launched = false;
-
+    init_paddle(&ctx->paddle);
+    init_ball(&ctx->ball);
     init_bricks(ctx->bricks);
+
+    ctx->ball_launched = false;
 
     return SDL_APP_CONTINUE;
 }
