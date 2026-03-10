@@ -1,10 +1,17 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+
+typedef struct {
+    SDL_FRect rect;
+    float dx;
+    float dy;
+} Ball;
 
 // 1. The "Brain" of our game - holds all our data
 typedef struct {
@@ -12,6 +19,9 @@ typedef struct {
     SDL_Renderer *renderer;
     bool running;
     SDL_FRect paddle;
+    Ball ball;
+    bool ball_launched;
+
     bool left_pressed;
     bool right_pressed;
 } GameContext;
@@ -42,6 +52,12 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ctx->paddle.h = 20.0f;
     ctx->paddle.x = (800.0f - ctx->paddle.w) / 2.0f; // Center it
     ctx->paddle.y = 560.0f;                          // Near the bottom
+                                                     //
+
+    ctx->ball.rect = (SDL_FRect){0, 0, 20.0f, 20.0f};
+    ctx->ball.dx = 4.0f;
+    ctx->ball.dy = -4.0f;
+    ctx->ball_launched = false;
 
     return SDL_APP_CONTINUE;
 }
@@ -64,6 +80,10 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
         case SDLK_RIGHT:
             ctx->right_pressed = is_down;
             break;
+        case SDLK_SPACE:
+            if (is_down)
+                ctx->ball_launched = true;
+            break;
         case SDLK_ESCAPE:
             return SDL_APP_SUCCESS;
             break;
@@ -77,12 +97,31 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     GameContext *ctx = (GameContext *)appstate;
 
+    // Movement and collision
+
     // Move the paddle
     float paddle_speed = 10.0f; // TODO: add delta time
     if (ctx->left_pressed)
         ctx->paddle.x -= paddle_speed;
     if (ctx->right_pressed)
         ctx->paddle.x += paddle_speed;
+
+    if (!ctx->ball_launched) {
+        // put the ball in the middle of the paddle
+        ctx->ball.rect.x = ctx->paddle.x + (ctx->paddle.w / 2.0f) - (ctx->ball.rect.w / 2.0f);
+        ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h;
+
+    } else {
+        // Move the ball
+        ctx->ball.rect.x += ctx->ball.dx;
+        ctx->ball.rect.y += ctx->ball.dy;
+    }
+
+    // Collision uses the rect inside the ball struct
+    if (SDL_HasRectIntersectionFloat(&ctx->ball.rect, &ctx->paddle)) {
+        ctx->ball.dy *= -1.0f;
+        ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h;
+    }
 
     // Check screen boundaries
     if (ctx->paddle.x < 0)
@@ -97,6 +136,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     // B. Draw the paddle
     SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); // white
     SDL_RenderFillRect(ctx->renderer, &ctx->paddle);
+
+    // Draw ball
+    SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 0, 255); // yellow
+    SDL_RenderFillRect(ctx->renderer, &ctx->ball.rect);
 
     // C. Show the result on screen
     SDL_RenderPresent(ctx->renderer);
