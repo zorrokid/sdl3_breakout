@@ -15,7 +15,7 @@ typedef struct {
     SDL_Window *window;
     SDL_Renderer *renderer;
     bool running;
-    SDL_FRect paddle;
+    Paddle paddle;
     Ball ball;
     bool ball_launched;
 
@@ -47,10 +47,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     SDL_SetRenderVSync(ctx->renderer, 1);
 
     // Initialize paddle
-    ctx->paddle.w = PADDLE_WIDTH;
-    ctx->paddle.h = PADDLE_HEIGHT;
-    ctx->paddle.x = (SCREEN_WIDTH - ctx->paddle.w) / 2.0f; // Center it
-    ctx->paddle.y = PADDLE_Y;                              // Near the bottom
+    ctx->paddle.rect.w = PADDLE_WIDTH;
+    ctx->paddle.rect.h = PADDLE_HEIGHT;
+    ctx->paddle.rect.x = (SCREEN_WIDTH - ctx->paddle.rect.w) / 2.0f; // Center it
+    ctx->paddle.rect.y = PADDLE_Y;                                   // Near the bottom
 
     ctx->ball.rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
     ctx->ball.dx = 4.0f;

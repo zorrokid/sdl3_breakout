@@ -8,6 +8,10 @@
 #define PADDLE_Y 560.0f
 #define PADDLE_SPEED 7.0f
 
-void move_paddle(SDL_FRect *paddle, bool left_pressed, bool right_pressed);
+typedef struct {
+    SDL_FRect rect;
+} Paddle;
+
+void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed);
 
 #endif // PADDLE_H
