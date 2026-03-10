@@ -1,6 +1,7 @@
 #ifndef BRICKS_H
 #define BRICKS_H
 
+#include "ball.h"
 #include <SDL3/SDL.h>
 
 #define BRICK_ROWS 5
@@ -16,5 +17,7 @@ typedef struct {
 
 void init_bricks(Brick bricks[]);
 void render_bricks(SDL_Renderer *renderer, Brick bricks[]);
+
+void check_ball_brick_collision(Ball *ball, Brick bricks[]);
 
 #endif // BRICKS_H

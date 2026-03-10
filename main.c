@@ -92,6 +92,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed);
     move_ball(&ctx->ball, &ctx->paddle, &ctx->ball_launched);
+    check_ball_brick_collision(&ctx->ball, ctx->bricks);
 
     // A. Clear the screen (Black)
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);

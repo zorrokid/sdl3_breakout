@@ -29,3 +29,13 @@ void render_bricks(SDL_Renderer *renderer, Brick bricks[]) {
         }
     }
 }
+
+void check_ball_brick_collision(Ball *ball, Brick bricks[]) {
+    for (int i = 0; i < BRICK_ROWS * BRICK_COLS; i++) {
+        if (bricks[i].active && SDL_HasRectIntersectionFloat(&ball->rect, &bricks[i].rect)) {
+            bricks[i].active = false; // Deactivate the brick
+            ball->dy *= -1.0f;        // Reverse the ball's vertical direction
+            break;                    // Only handle one collision per frame
+        }
+    }
+}
