@@ -61,7 +61,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     ctx->paddle.h = PADDLE_HEIGHT;
     ctx->paddle.x = (SCREEN_WIDTH - ctx->paddle.w) / 2.0f; // Center it
     ctx->paddle.y = PADDLE_Y;                              // Near the bottom
-                                                           //
 
     ctx->ball.rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
     ctx->ball.dx = 4.0f;
@@ -119,7 +118,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     if (!ctx->ball_launched) {
         // put the ball in the middle of the paddle
         ctx->ball.rect.x = ctx->paddle.x + (ctx->paddle.w / 2.0f) - (ctx->ball.rect.w / 2.0f);
-        ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h;
+        ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h - 1.0f; // just above the paddle
 
     } else {
         // Move the ball
@@ -132,6 +131,15 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
             ctx->ball.dx *= -1;
         if (ctx->ball.rect.y <= 0)
             ctx->ball.dy *= -1;
+
+        // Paddle collision
+        if (SDL_HasRectIntersectionFloat(&ctx->ball.rect, &ctx->paddle)) {
+            // Reverse the direction
+            ctx->ball.dy *= -1.0f;
+
+            // snap the ball to the top of the paddle to prevent sticking
+            ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h - 1.0f;
+        }
     }
 
     // Collision uses the rect inside the ball struct
