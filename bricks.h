@@ -1,6 +1,5 @@
 #ifndef BRICKS_H
 #define BRICKS_H
-#endif
 
 #include <SDL3/SDL.h>
 
@@ -17,3 +16,5 @@ typedef struct {
 
 void init_bricks(Brick bricks[]);
 void render_bricks(SDL_Renderer *renderer, Brick bricks[]);
+
+#endif // BRICKS_H

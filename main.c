@@ -4,24 +4,13 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #define SDL_MAIN_USE_CALLBACKS 1
+#include "ball.h"
 #include "bricks.h"
 #include "common.h"
+#include "paddle.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#define PADDLE_WIDTH 100.0f
-#define PADDLE_HEIGHT 20.0f
-#define PADDLE_Y 560.0f
-#define PADDLE_SPEED 7.0f
-#define BALL_SIZE 16.0f
-
-typedef struct {
-    SDL_FRect rect;
-    float dx;
-    float dy;
-} Ball;
-
-// 1. The "Brain" of our game - holds all our data
 typedef struct {
     SDL_Window *window;
     SDL_Renderer *renderer;
@@ -36,7 +25,6 @@ typedef struct {
     Brick bricks[BRICK_ROWS * BRICK_COLS];
 } GameContext;
 
-// 2. Setup: This runs exactly once when the program starts
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
@@ -109,59 +97,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     GameContext *ctx = (GameContext *)appstate;
 
-    // Movement and collision
-
-    // Move the paddle
-    float paddle_speed = PADDLE_SPEED; // TODO: add delta time
-    if (ctx->left_pressed)
-        ctx->paddle.x -= paddle_speed;
-    if (ctx->right_pressed)
-        ctx->paddle.x += paddle_speed;
-
-    // Move the ball
-    if (!ctx->ball_launched) {
-        // put the ball in the middle of the paddle
-        ctx->ball.rect.x = ctx->paddle.x + (ctx->paddle.w / 2.0f) - (ctx->ball.rect.w / 2.0f);
-        ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h - 1.0f; // just above the paddle
-
-    } else {
-        // Move the ball
-        ctx->ball.rect.x += ctx->ball.dx;
-        ctx->ball.rect.y += ctx->ball.dy;
-
-        // Wall collision
-
-        if (ctx->ball.rect.x <= 0 || ctx->ball.rect.x >= SCREEN_WIDTH - ctx->ball.rect.w)
-            ctx->ball.dx *= -1;
-        if (ctx->ball.rect.y <= 0)
-            ctx->ball.dy *= -1;
-
-        // Paddle collision
-        if (SDL_HasRectIntersectionFloat(&ctx->ball.rect, &ctx->paddle)) {
-            // Reverse the direction
-            ctx->ball.dy *= -1.0f;
-
-            // snap the ball to the top of the paddle to prevent sticking
-            ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h - 1.0f;
-        }
-
-        if (ctx->ball.rect.y > SCREEN_HEIGHT) {
-            // Ball fell below the screen, reset it
-            ctx->ball_launched = false;
-        }
-    }
-
-    // Collision uses the rect inside the ball struct
-    if (SDL_HasRectIntersectionFloat(&ctx->ball.rect, &ctx->paddle)) {
-        ctx->ball.dy *= -1.0f;
-        ctx->ball.rect.y = ctx->paddle.y - ctx->ball.rect.h;
-    }
-
-    // Check screen boundaries
-    if (ctx->paddle.x < 0)
-        ctx->paddle.x = 0;
-    if (ctx->paddle.x > SCREEN_WIDTH - ctx->paddle.w)
-        ctx->paddle.x = SCREEN_WIDTH - ctx->paddle.w;
+    move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed);
+    move_ball(&ctx->ball, &ctx->paddle, &ctx->ball_launched);
 
     // A. Clear the screen (Black)
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
