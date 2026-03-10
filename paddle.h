@@ -1,6 +1,7 @@
 #ifndef PADDLE_H
 #define PADDLE_H
 
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_rect.h>
 
 #define PADDLE_WIDTH 100.0f
@@ -14,5 +15,6 @@ typedef struct {
 
 void init_paddle(Paddle *paddle);
 void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed);
+void render_paddle(SDL_Renderer *renderer, Paddle *paddle);
 
 #endif // PADDLE_H

@@ -36,7 +36,7 @@ void move_ball(Ball *ball, SDL_FRect *paddle, bool *ball_launched) {
 
         if (ball->rect.y > SCREEN_HEIGHT) {
             // Ball fell below the screen, reset it
-            ball_launched = false;
+            *ball_launched = false;
         }
     }
     // Collision uses the rect inside the ball struct
@@ -44,4 +44,9 @@ void move_ball(Ball *ball, SDL_FRect *paddle, bool *ball_launched) {
         ball->dy *= -1.0f;
         ball->rect.y = paddle->y - ball->rect.h;
     }
+}
+
+void render_ball(SDL_Renderer *renderer, Ball *ball) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // yellow
+    SDL_RenderFillRect(renderer, &ball->rect);
 }

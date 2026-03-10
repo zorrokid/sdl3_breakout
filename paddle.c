@@ -22,3 +22,8 @@ void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed) {
     if (paddle->rect.x > SCREEN_WIDTH - paddle->rect.w)
         paddle->rect.x = SCREEN_WIDTH - paddle->rect.w;
 }
+
+void render_paddle(SDL_Renderer *renderer, Paddle *paddle) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // white
+    SDL_RenderFillRect(renderer, &paddle->rect);
+}

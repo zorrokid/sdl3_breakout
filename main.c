@@ -97,14 +97,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
     SDL_RenderClear(ctx->renderer);
 
-    // B. Draw the paddle
-    SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 255, 255); // white
-    SDL_RenderFillRect(ctx->renderer, &ctx->paddle);
-
-    // Draw ball
-    SDL_SetRenderDrawColor(ctx->renderer, 255, 255, 0, 255); // yellow
-    SDL_RenderFillRect(ctx->renderer, &ctx->ball.rect);
-
+    render_paddle(ctx->renderer, &ctx->paddle);
+    render_ball(ctx->renderer, &ctx->ball);
     render_bricks(ctx->renderer, ctx->bricks);
 
     // C. Show the result on screen
