@@ -30,12 +30,44 @@ void render_bricks(SDL_Renderer *renderer, Brick bricks[]) {
     }
 }
 
-void check_ball_brick_collision(Ball *ball, Brick bricks[]) {
+void check_ball_brick_collision(Ball *ball, Brick *bricks) {
     for (int i = 0; i < BRICK_ROWS * BRICK_COLS; i++) {
-        if (bricks[i].active && SDL_HasRectIntersectionFloat(&ball->rect, &bricks[i].rect)) {
-            bricks[i].active = false; // Deactivate the brick
-            ball->dy *= -1.0f;        // Reverse the ball's vertical direction
-            break;                    // Only handle one collision per frame
+        Brick *brick = &bricks[i];
+        if (brick->active && SDL_HasRectIntersectionFloat(&ball->rect, &brick->rect)) {
+
+            // calculate center of brick to center of ball vector to detect
+            // if the collision is top / bottom or side of a brick.
+
+            // Centers
+            float ball_cx = ball->rect.x + (ball->rect.w / 2.0f);
+            float ball_cy = ball->rect.y + (ball->rect.h / 2.0f);
+            float brick_cx = brick->rect.x + (brick->rect.w / 2.0f);
+            float brick_cy = brick->rect.y + (brick->rect.h / 2.0f);
+
+            // relative distance (Vector from brick center to ball center)
+            float dx = ball_cx - brick_cx;
+            float dy = ball_cy - brick_cy;
+
+            // we need to normalize the distance between center of the ball
+            // and center of the brick by calculating the percentage
+            // how far the ball center is from brick center
+            float brick_width_half = brick->rect.w / 2.0f;
+            float brick_height_half = brick->rect.h / 2.0f;
+
+            // percentage from side
+            float dx_percentage = SDL_fabs(dx / brick_width_half);
+            // percentage from top / bottom
+            float dy_percentage = SDL_fabs(dy / brick_height_half);
+
+            if (dx_percentage > dy_percentage) {
+                // side hit
+                ball->dx *= -1.0f;
+            } else {
+                // top / bottom hit
+                ball->dy *= -1.0f;
+            }
+            brick->active = false;
+            break;
         }
     }
 }
