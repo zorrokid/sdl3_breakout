@@ -8,13 +8,13 @@ void init_paddle(Paddle *paddle) {
     paddle->rect.y = PADDLE_Y;                               // Near the bottom
 }
 
-void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed) {
+void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed, float delta_time) {
     // Move the paddle
-    float paddle_speed = PADDLE_SPEED; // TODO: add delta time
+    float paddle_speed = PADDLE_SPEED;
     if (left_pressed)
-        paddle->rect.x -= paddle_speed;
+        paddle->rect.x -= paddle_speed * delta_time;
     if (right_pressed)
-        paddle->rect.x += paddle_speed;
+        paddle->rect.x += paddle_speed * delta_time;
 
     // Check screen boundaries
     if (paddle->rect.x < 0)

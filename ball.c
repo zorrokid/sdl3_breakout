@@ -4,15 +4,15 @@
 
 void init_ball(Ball *ball) {
     ball->rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
-    ball->dx = 4.0f;
-    ball->dy = -4.0f;
+    ball->dx = BALL_SPEED_X;
+    ball->dy = BALL_SPEED_Y;
 }
 
-void move_ball(Ball *ball, Paddle *paddle, bool *ball_launched) {
+void move_ball(Ball *ball, Paddle *paddle, float delta_time) {
 
     // Move the ball
-    ball->rect.x += ball->dx;
-    ball->rect.y += ball->dy;
+    ball->rect.x += ball->dx * delta_time;
+    ball->rect.y += ball->dy * delta_time;
 
     // Check wall collision
 

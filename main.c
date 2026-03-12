@@ -24,6 +24,7 @@ typedef struct {
 
     Brick bricks[BRICK_ROWS * BRICK_COLS];
     int lives;
+    uint64_t last_ticks;
 } GameContext;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -53,6 +54,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
 
     ctx->ball_launched = false;
     ctx->lives = 3;
+    ctx->last_ticks = SDL_GetTicks();
 
     return SDL_APP_CONTINUE;
 }
@@ -100,10 +102,19 @@ void reset_game(GameContext *ctx) {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     GameContext *ctx = (GameContext *)appstate;
 
-    move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed);
+    // Calculate delta time
+    uint64_t current_ticks = SDL_GetTicks();
+    float delta_time = (current_ticks - ctx->last_ticks) / 1000.0f;
+    ctx->last_ticks = current_ticks;
+
+    // Cap delta time to prevent big jumps
+    if (delta_time > 0.1f)
+        delta_time = 0.1f;
+
+    move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed, delta_time);
 
     if (ctx->ball_launched)
-        move_ball(&ctx->ball, &ctx->paddle, &ctx->ball_launched);
+        move_ball(&ctx->ball, &ctx->paddle, delta_time);
     else
         set_ball_on_paddle(&ctx->ball, &ctx->paddle);
 

@@ -7,14 +7,14 @@
 #define PADDLE_WIDTH 100.0f
 #define PADDLE_HEIGHT 20.0f
 #define PADDLE_Y 560.0f
-#define PADDLE_SPEED 7.0f
+#define PADDLE_SPEED 700.0f
 
 typedef struct {
     SDL_FRect rect;
 } Paddle;
 
 void init_paddle(Paddle *paddle);
-void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed);
+void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed, float delta_time);
 void render_paddle(SDL_Renderer *renderer, Paddle *paddle);
 
 #endif // PADDLE_H
