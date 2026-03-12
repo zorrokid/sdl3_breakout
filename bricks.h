@@ -15,9 +15,10 @@ typedef struct {
     bool active;
 } Brick;
 
-void init_bricks(Brick bricks[]);
-void render_bricks(SDL_Renderer *renderer, Brick bricks[]);
+void init_bricks(Brick *bricks);
+void render_bricks(SDL_Renderer *renderer, Brick *bricks);
 
-void check_ball_brick_collision(Ball *ball, Brick bricks[]);
+void check_ball_brick_collision(Ball *ball, Brick *bricks);
 
+bool check_win_condition(Brick *bricks);
 #endif // BRICKS_H

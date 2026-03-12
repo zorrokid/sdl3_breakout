@@ -1,7 +1,7 @@
 #include "bricks.h"
 #include "common.h"
 
-void init_bricks(Brick bricks[]) {
+void init_bricks(Brick *bricks) {
     float total_width = (BRICK_COLS * (BRICK_WIDTH + BRICK_PADDING)) - BRICK_PADDING;
     // Center the bricks horizontally
     float start_x = (SCREEN_WIDTH - total_width) / 2.0f;
@@ -19,7 +19,7 @@ void init_bricks(Brick bricks[]) {
     }
 }
 
-void render_bricks(SDL_Renderer *renderer, Brick bricks[]) {
+void render_bricks(SDL_Renderer *renderer, Brick *bricks) {
     for (int i = 0; i < BRICK_ROWS * BRICK_COLS; i++) {
         if (bricks[i].active) {
             int row = i / BRICK_COLS;
@@ -70,4 +70,12 @@ void check_ball_brick_collision(Ball *ball, Brick *bricks) {
             break;
         }
     }
+}
+
+bool check_win_condition(Brick *bricks) {
+    for (int i = 0; i < BRICK_ROWS * BRICK_COLS; i++) {
+        if (bricks[i].active)
+            return false;
+    }
+    return true;
 }

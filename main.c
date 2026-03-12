@@ -23,6 +23,7 @@ typedef struct {
     bool right_pressed;
 
     Brick bricks[BRICK_ROWS * BRICK_COLS];
+    int lives;
 } GameContext;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
@@ -51,6 +52,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     init_bricks(ctx->bricks);
 
     ctx->ball_launched = false;
+    ctx->lives = 3;
 
     return SDL_APP_CONTINUE;
 }
@@ -86,13 +88,47 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     return SDL_APP_CONTINUE;
 }
 
+void reset_game(GameContext *ctx) {
+    init_paddle(&ctx->paddle);
+    init_ball(&ctx->ball);
+    init_bricks(ctx->bricks);
+    ctx->ball_launched = false;
+    ctx->lives = 3;
+}
+
 // 4. The Loop: This runs every single frame
 SDL_AppResult SDL_AppIterate(void *appstate) {
     GameContext *ctx = (GameContext *)appstate;
 
     move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed);
-    move_ball(&ctx->ball, &ctx->paddle, &ctx->ball_launched);
+
+    if (ctx->ball_launched)
+        move_ball(&ctx->ball, &ctx->paddle, &ctx->ball_launched);
+    else
+        set_ball_on_paddle(&ctx->ball, &ctx->paddle);
+
+    if (is_ball_out(&ctx->ball)) {
+        ctx->lives--;
+        ctx->ball_launched = false;
+        SDL_Log("Ball lost! Lives remaining: %d", ctx->lives);
+        if (ctx->lives <= 0) {
+            SDL_Log("Game Over!");
+            // Game over, reset everything
+            // TODO: show game over screen
+            reset_game(ctx);
+        } else {
+            // Just reset the ball and paddle
+            init_paddle(&ctx->paddle);
+            init_ball(&ctx->ball);
+        }
+    }
+
     check_ball_brick_collision(&ctx->ball, ctx->bricks);
+
+    if (check_win_condition(ctx->bricks)) {
+        SDL_Log("You Win!");
+        reset_game(ctx);
+    }
 
     // A. Clear the screen (Black)
     SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
