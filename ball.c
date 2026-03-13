@@ -14,10 +14,26 @@ void move_ball(Ball *ball, float delta_time) {
 }
 
 void check_wall_collision(Ball *ball) {
-    if (ball->rect.x <= 0 || ball->rect.x >= SCREEN_WIDTH - ball->rect.w)
-        ball->dx *= -1;
-    if (ball->rect.y <= 0)
-        ball->dy *= -1;
+
+    // Left wall
+    if (ball->rect.x <= 0) {
+        // snap the ball to the wall to prevent sticking
+        ball->rect.x = 0;
+        ball->dx *= -1.0f;
+    }
+    // Right wall
+    if (ball->rect.x + ball->rect.w >= SCREEN_WIDTH) {
+        // snap the ball to the wall to prevent sticking
+        ball->rect.x = SCREEN_WIDTH - ball->rect.w;
+        ball->dx *= -1.0f;
+    }
+
+    // Top wall
+    if (ball->rect.y <= 0) {
+        // snap the ball to the wall to prevent sticking
+        ball->rect.y = 0;
+        ball->dy *= -1.0f;
+    }
 }
 
 void check_paddle_collision(Ball *ball, Paddle *paddle) {
