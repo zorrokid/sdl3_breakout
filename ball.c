@@ -27,6 +27,16 @@ void move_ball(Ball *ball, Paddle *paddle, float delta_time) {
 
         // snap the ball to the top of the paddle to prevent sticking
         ball->rect.y = paddle->rect.y - ball->rect.h - 1.0f;
+
+        // Calculate the it position relative to the paddle center
+        float ball_center_x = ball->rect.x + (ball->rect.w / 2.0f);
+        float paddle_center_x = paddle->rect.x + (paddle->rect.w / 2.0f);
+        float ball_dist = ball_center_x - paddle_center_x;
+        // Range -0.5 (left edge) to 0.5 (right edge)
+        float multiplier = ball_dist / paddle->rect.w;
+        // Apply the "English"
+        float max_bounce_angle = 2.0f;
+        ball->dx = multiplier * (BALL_SPEED_X * max_bounce_angle);
     }
 }
 
