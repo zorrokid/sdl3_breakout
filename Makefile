@@ -7,7 +7,7 @@ LIBS = $(shell pkg-config --libs sdl3)
 TARGET = breakout
 
 # All your .c files
-SRCS = main.c bricks.c ball.c paddle.c
+SRCS = main.c bricks.c ball.c paddle.c particles.c
 
 # The default rule (what happens when you just type 'make')
 all:

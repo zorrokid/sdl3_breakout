@@ -1,0 +1,26 @@
+#include "ball.h"
+#include "bricks.h"
+#include "paddle.h"
+#include "particles.h"
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_init.h>
+#include <SDL3/SDL_keycode.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
+
+typedef struct GameContext {
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  bool running;
+  Paddle paddle;
+  Ball ball;
+  bool ball_launched;
+
+  bool left_pressed;
+  bool right_pressed;
+
+  Brick bricks[BRICK_ROWS * BRICK_COLS];
+  int lives;
+  uint64_t last_ticks;
+  Particle particles[MAX_PARTICLES];
+} GameContext;
