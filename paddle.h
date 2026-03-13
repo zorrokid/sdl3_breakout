@@ -11,6 +11,9 @@
 
 typedef struct {
     SDL_FRect rect;
+    // This is used to calculate the ball's bounce angle based on how fast and what direction the
+    // paddle is moving
+    float last_movement;
 } Paddle;
 
 void init_paddle(Paddle *paddle);

@@ -113,9 +113,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 
     move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed, delta_time);
 
-    if (ctx->ball_launched)
-        move_ball(&ctx->ball, &ctx->paddle, delta_time);
-    else
+    if (ctx->ball_launched) {
+        move_ball(&ctx->ball, delta_time);
+        check_wall_collision(&ctx->ball);
+        check_paddle_collision(&ctx->ball, &ctx->paddle);
+    } else
         set_ball_on_paddle(&ctx->ball, &ctx->paddle);
 
     if (is_ball_out(&ctx->ball)) {

@@ -4,24 +4,23 @@
 
 void init_ball(Ball *ball) {
     ball->rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
-    ball->dx = BALL_SPEED_X;
-    ball->dy = BALL_SPEED_Y;
+    ball->dx = BALL_SPEED;
+    ball->dy = -BALL_SPEED;
 }
 
-void move_ball(Ball *ball, Paddle *paddle, float delta_time) {
-
-    // Move the ball
+void move_ball(Ball *ball, float delta_time) {
     ball->rect.x += ball->dx * delta_time;
     ball->rect.y += ball->dy * delta_time;
+}
 
-    // Check wall collision
-
+void check_wall_collision(Ball *ball) {
     if (ball->rect.x <= 0 || ball->rect.x >= SCREEN_WIDTH - ball->rect.w)
         ball->dx *= -1;
     if (ball->rect.y <= 0)
         ball->dy *= -1;
+}
 
-    // Check paddle collision
+void check_paddle_collision(Ball *ball, Paddle *paddle) {
     if (SDL_HasRectIntersectionFloat(&ball->rect, &paddle->rect)) {
         ball->dy *= -1.0f;
 
@@ -32,11 +31,24 @@ void move_ball(Ball *ball, Paddle *paddle, float delta_time) {
         float ball_center_x = ball->rect.x + (ball->rect.w / 2.0f);
         float paddle_center_x = paddle->rect.x + (paddle->rect.w / 2.0f);
         float ball_dist = ball_center_x - paddle_center_x;
+
         // Range -0.5 (left edge) to 0.5 (right edge)
         float multiplier = ball_dist / paddle->rect.w;
+
         // Apply the "English"
         float max_bounce_angle = 2.0f;
-        ball->dx = multiplier * (BALL_SPEED_X * max_bounce_angle);
+        ball->dx = multiplier * (BALL_SPEED * max_bounce_angle);
+
+        // Adjust the ball's horizontal speed based on the paddle's movement to add more "English"
+        if (paddle->last_movement > 0)
+            ball->dx += (PADDLE_SPEED * 0.2f);
+        if (paddle->last_movement < 0)
+            ball->dx -= (PADDLE_SPEED * 0.2f);
+
+        // Normalize the ball's speed to maintain a consistent overall speed
+        float current_speed = SDL_sqrtf(ball->dx * ball->dx + ball->dy * ball->dy);
+        ball->dx = (ball->dx / current_speed) * BALL_SPEED;
+        ball->dy = (ball->dy / current_speed) * BALL_SPEED;
     }
 }
 
