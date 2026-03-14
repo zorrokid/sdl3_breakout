@@ -25,4 +25,6 @@ typedef struct GameContext {
   Particle particles[MAX_PARTICLES];
   float shake_timer_s;
   float shake_intensity_pixels;
+  int score;
+  int combo_count;
 } GameContext;

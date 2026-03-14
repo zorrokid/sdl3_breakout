@@ -100,7 +100,9 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   if (ctx->ball_launched) {
     move_ball(&ctx->ball, delta_time);
     check_wall_collision(&ctx->ball);
-    check_paddle_collision(&ctx->ball, &ctx->paddle);
+    if (check_paddle_collision(&ctx->ball, &ctx->paddle)) {
+      ctx->combo_count = 0; // Reset combo on paddle hit
+    }
   } else
     set_ball_on_paddle(&ctx->ball, &ctx->paddle);
 
@@ -166,7 +168,15 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
 void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
   spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255});
   ctx->shake_timer_s = 0.3f; // Shake for 0.3 seconds
-  ctx->shake_intensity_pixels = 5.0f;
+  ctx->shake_intensity_pixels =
+      5.0f + (ctx->combo_count * 2.0f); // Increase shake with combo
+  // combo and score
+  ctx->combo_count++;
+  int base_score = 100;
+  int earned = base_score * ctx->combo_count; // More points for combos
+  ctx->score += earned;
+  SDL_Log("Brick hit! Combo: %d, Score Earned: %d, Total Score: %d",
+          ctx->combo_count, earned, ctx->score);
   // TODO: add sound effect here
   // TODO: increment score here
 }

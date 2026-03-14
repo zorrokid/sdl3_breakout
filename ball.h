@@ -8,9 +8,9 @@
 #define BALL_SPEED 350.0f
 
 typedef struct {
-    SDL_FRect rect;
-    float dx;
-    float dy;
+  SDL_FRect rect;
+  float dx;
+  float dy;
 } Ball;
 
 void init_ball(Ball *ball);
@@ -19,6 +19,6 @@ void set_ball_on_paddle(Ball *ball, Paddle *paddle);
 void render_ball(SDL_Renderer *renderer, Ball *ball);
 bool is_ball_out(Ball *ball);
 void check_wall_collision(Ball *ball);
-void check_paddle_collision(Ball *ball, Paddle *paddle);
+bool check_paddle_collision(Ball *ball, Paddle *paddle);
 
 #endif // BALL_H
