@@ -45,7 +45,6 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   return SDL_APP_CONTINUE;
 }
 
-// 3. Events: Handle "X" button or keys
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
   GameContext *ctx = (GameContext *)appstate;
 
@@ -84,7 +83,6 @@ void reset_game(GameContext *ctx) {
   ctx->lives = 3;
 }
 
-// 4. The Loop: This runs every single frame
 SDL_AppResult SDL_AppIterate(void *appstate) {
   GameContext *ctx = (GameContext *)appstate;
 
@@ -131,7 +129,18 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     reset_game(ctx);
   }
 
-  // A. Clear the screen (Black)
+  // Calculate shake offset if shaking
+  SDL_Rect viewport = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+  if (ctx->shake_timer_s > 0) {
+    viewport.x = (int)((rand() % 100 / 100.0f) * ctx->shake_intensity_pixels);
+    viewport.y = (int)((rand() % 100 / 100.0f) * ctx->shake_intensity_pixels);
+    ctx->shake_timer_s -= delta_time;
+  }
+
+  // Set the viewport to shift the coordinate system for the shake effect
+  SDL_SetRenderViewport(ctx->renderer, &viewport);
+
+  // clear screen to black
   SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
   SDL_RenderClear(ctx->renderer);
 
@@ -140,13 +149,11 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   render_bricks(ctx->renderer, ctx->bricks);
   render_particles(ctx->renderer, ctx->particles);
 
-  // C. Show the result on screen
   SDL_RenderPresent(ctx->renderer);
 
   return SDL_APP_CONTINUE;
 }
 
-// 5. Cleanup: Runs when the app closes
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   GameContext *ctx = (GameContext *)appstate;
   if (ctx) {
@@ -158,6 +165,8 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
 
 void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
   spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255});
+  ctx->shake_timer_s = 0.3f; // Shake for 0.3 seconds
+  ctx->shake_intensity_pixels = 5.0f;
   // TODO: add sound effect here
   // TODO: increment score here
 }

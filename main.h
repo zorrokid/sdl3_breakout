@@ -23,4 +23,6 @@ typedef struct GameContext {
   int lives;
   uint64_t last_ticks;
   Particle particles[MAX_PARTICLES];
+  float shake_timer_s;
+  float shake_intensity_pixels;
 } GameContext;
