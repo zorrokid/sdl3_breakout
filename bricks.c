@@ -71,9 +71,8 @@ void check_ball_brick_collision(struct GameContext *ctx,
         // top / bottom hit
         ctx->ball.dy *= -1.0f;
       }
-      brick->active = false;
       on_brick_hit(ctx, brick);
-
+      brick->active = false;
       break;
     }
   }
