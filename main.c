@@ -38,6 +38,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   ctx->ball_launched = false;
   ctx->lives = 3;
   ctx->last_ticks = SDL_GetTicks();
+  ctx->state = STATE_PLAYING;
 
   // Prorably not necessary, since we used SDL_calloc, which zeroes the memory
   memset(ctx->particles, 0, sizeof(ctx->particles));
@@ -83,9 +84,7 @@ void reset_game(GameContext *ctx) {
   ctx->lives = 3;
 }
 
-SDL_AppResult SDL_AppIterate(void *appstate) {
-  GameContext *ctx = (GameContext *)appstate;
-
+void update_gameplay(GameContext *ctx) {
   // Calculate delta time
   uint64_t current_ticks = SDL_GetTicks();
   float delta_time = (current_ticks - ctx->last_ticks) / 1000.0f;
@@ -152,6 +151,19 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
   render_particles(ctx->renderer, ctx->particles);
 
   SDL_RenderPresent(ctx->renderer);
+}
+
+SDL_AppResult SDL_AppIterate(void *appstate) {
+  GameContext *ctx = (GameContext *)appstate;
+  switch (ctx->state) {
+  case STATE_TITLE:
+    break;
+  case STATE_PLAYING:
+    update_gameplay(ctx);
+    break;
+  case STATE_GAME_OVER:
+    break;
+  }
 
   return SDL_APP_CONTINUE;
 }

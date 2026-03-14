@@ -8,6 +8,12 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 
+typedef enum {
+  STATE_TITLE,
+  STATE_PLAYING,
+  STATE_GAME_OVER,
+} GameState;
+
 typedef struct GameContext {
   SDL_Window *window;
   SDL_Renderer *renderer;
@@ -27,4 +33,5 @@ typedef struct GameContext {
   float shake_intensity_pixels;
   int score;
   int combo_count;
+  GameState state;
 } GameContext;
