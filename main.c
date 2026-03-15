@@ -32,14 +32,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   // Enable VSync so we don't melt the GPU
   SDL_SetRenderVSync(ctx->renderer, 1);
 
-  init_paddle(&ctx->paddle);
-  init_ball(&ctx->ball);
-  init_bricks(ctx->bricks);
-
-  ctx->ball_launched = false;
-  ctx->lives = 3;
-  ctx->last_ticks = SDL_GetTicks();
-  ctx->state = STATE_PLAYING;
+  reset_game(ctx);
 
   // Prorably not necessary, since we used SDL_calloc, which zeroes the memory
   memset(ctx->particles, 0, sizeof(ctx->particles));
@@ -56,11 +49,16 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
 
   switch (ctx->state) {
   case STATE_TITLE:
+    return handle_title_events(ctx, event);
     break;
   case STATE_PLAYING:
     return handle_game_events(ctx, event);
     break;
   case STATE_GAME_OVER:
+    return handle_game_over(ctx, event);
+    break;
+  case STATE_GAME_WON:
+    return handle_game_won(ctx, event);
     break;
   }
   return SDL_APP_CONTINUE;
@@ -72,6 +70,8 @@ void reset_game(GameContext *ctx) {
   init_bricks(ctx->bricks);
   ctx->ball_launched = false;
   ctx->lives = 3;
+  ctx->last_ticks = SDL_GetTicks();
+  ctx->state = STATE_PLAYING;
 }
 
 void update_gameplay(GameContext *ctx) {
@@ -101,9 +101,10 @@ void update_gameplay(GameContext *ctx) {
     SDL_Log("Ball lost! Lives remaining: %d", ctx->lives);
     if (ctx->lives <= 0) {
       SDL_Log("Game Over!");
+      ctx->state = STATE_GAME_OVER;
       // Game over, reset everything
       // TODO: show game over screen
-      reset_game(ctx);
+      // reset_game(ctx);
     } else {
       // Just reset the ball and paddle
       init_paddle(&ctx->paddle);
@@ -117,7 +118,8 @@ void update_gameplay(GameContext *ctx) {
 
   if (check_win_condition(ctx->bricks)) {
     SDL_Log("You Win!");
-    reset_game(ctx);
+    ctx->state = STATE_GAME_WON;
+    // reset_game(ctx);
   }
 
   // Calculate shake offset if shaking
@@ -152,6 +154,8 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     update_gameplay(ctx);
     break;
   case STATE_GAME_OVER:
+    break;
+  case STATE_GAME_WON:
     break;
   }
 

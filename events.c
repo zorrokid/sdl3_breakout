@@ -5,8 +5,7 @@ SDL_AppResult handle_title_events(GameContext *ctx, SDL_Event *event) {
   if (event->type == SDL_EVENT_KEY_DOWN) {
     switch (event->key.key) {
     case SDLK_SPACE:
-      // TODO
-      // reset_game(ctx);
+      reset_game(ctx);
       ctx->state = STATE_PLAYING;
 
       break;
@@ -40,6 +39,13 @@ SDL_AppResult handle_game_events(GameContext *ctx, SDL_Event *event) {
 }
 
 SDL_AppResult handle_game_over(GameContext *ctx, SDL_Event *event) {
+  if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_SPACE) {
+    ctx->state = STATE_TITLE;
+  }
+  return SDL_APP_CONTINUE;
+}
+
+SDL_AppResult handle_game_won(GameContext *ctx, SDL_Event *event) {
   if (event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_SPACE) {
     ctx->state = STATE_TITLE;
   }

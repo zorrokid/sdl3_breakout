@@ -15,6 +15,7 @@ typedef enum {
   STATE_TITLE,
   STATE_PLAYING,
   STATE_GAME_OVER,
+  STATE_GAME_WON
 } GameState;
 
 typedef struct GameContext {
@@ -38,5 +39,7 @@ typedef struct GameContext {
   int combo_count;
   GameState state;
 } GameContext;
+
+void reset_game(GameContext *ctx);
 
 #endif // MAIN_H
