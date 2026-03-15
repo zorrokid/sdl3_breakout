@@ -127,6 +127,8 @@ void update_gameplay(GameContext *ctx) {
   check_ball_brick_collision(ctx, on_brick_hit);
 
   update_particles(ctx->particles, delta_time);
+  update_score_texture(ctx);
+  update_lives_texture(ctx);
 
   if (check_win_condition(ctx->bricks)) {
     // TODO: Check if it's the last level, otherwise proceed to next level
@@ -154,6 +156,7 @@ void update_gameplay(GameContext *ctx) {
   render_bricks(ctx->renderer, ctx->bricks);
   render_particles(ctx->renderer, ctx->particles);
   render_score(ctx);
+  render_lives(ctx);
 
   SDL_RenderPresent(ctx->renderer);
 }
@@ -205,6 +208,9 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     SDL_free(ctx);
     if (ctx->score_texture) {
       SDL_DestroyTexture(ctx->score_texture);
+    }
+    if (ctx->lives_texture) {
+      SDL_DestroyTexture(ctx->lives_texture);
     }
     if (ctx->font) {
       TTF_CloseFont(ctx->font);

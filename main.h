@@ -32,17 +32,22 @@ typedef struct GameContext {
   bool right_pressed;
 
   Brick bricks[BRICK_ROWS * BRICK_COLS];
-  int lives;
   uint64_t last_ticks;
   Particle particles[MAX_PARTICLES];
   float shake_timer_s;
   float shake_intensity_pixels;
+
   int score;
+  int last_score; // Used to track changes for updating the texture
+
+  int lives;
+  int last_lives; // Used to track changes for updating the texture
+
   int combo_count;
   GameState state;
   TTF_Font *font;
   SDL_Texture *score_texture;
-  int last_score;
+  SDL_Texture *lives_texture;
 } GameContext;
 
 void reset_game(GameContext *ctx);

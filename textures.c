@@ -2,28 +2,77 @@
 #include "textures.h"
 #include "main.h"
 
-void render_score(struct GameContext *ctx) {
+void update_score_texture(struct GameContext *ctx) {
   if (!ctx->font) {
     SDL_Log("Font not loaded, cannot render score.");
     return;
   }
-  if (ctx->score != ctx->last_score || ctx->score_texture == NULL) {
+
+  if (ctx->score == ctx->last_score && ctx->score_texture)
+    return;
+
+  char score_text[32];
+  snprintf(score_text, sizeof(score_text), "SCORE: %d", ctx->score);
+  SDL_Color white = {255, 255, 255, 255};
+  SDL_Texture *new_texture =
+      create_text_texture(ctx->renderer, ctx->font, score_text, white);
+
+  if (new_texture) {
+    // Destroy the old texture
     if (ctx->score_texture) {
       SDL_DestroyTexture(ctx->score_texture);
     }
-    char score_text[32];
-    snprintf(score_text, sizeof(score_text), "SCORE: %d", ctx->score);
-
-    SDL_Color white = {255, 255, 255, 255};
-    ctx->score_texture =
-        create_text_texture(ctx->renderer, ctx->font, score_text, white);
+    ctx->score_texture = new_texture;
     ctx->last_score = ctx->score;
+  } else {
+    SDL_Log("Failed to create score texture.");
   }
+}
+
+void render_score(struct GameContext *ctx) {
+  // Render the score texture if it exists
   if (ctx->score_texture) {
     float w, h;
     SDL_GetTextureSize(ctx->score_texture, &w, &h);
     SDL_FRect dst = {20.0f, 20.0f, w, h};
     SDL_RenderTexture(ctx->renderer, ctx->score_texture, NULL, &dst);
+  }
+}
+
+void update_lives_texture(struct GameContext *ctx) {
+  if (!ctx->font) {
+    SDL_Log("Font not loaded, cannot render score.");
+    return;
+  }
+
+  if (ctx->lives == ctx->last_lives && ctx->lives_texture)
+    return;
+
+  char lives_text[32];
+  snprintf(lives_text, sizeof(lives_text), "LIVES: %d", ctx->lives);
+
+  SDL_Color white = {255, 255, 255, 255};
+
+  SDL_Texture *new_texture =
+      create_text_texture(ctx->renderer, ctx->font, lives_text, white);
+
+  if (new_texture) {
+    // Destroy the old texture
+    if (ctx->lives_texture) {
+      SDL_DestroyTexture(ctx->lives_texture);
+    }
+    ctx->lives_texture = new_texture;
+    ctx->last_lives = ctx->lives;
+  }
+}
+
+void render_lives(struct GameContext *ctx) {
+  // Render the lives texture if it exists
+  if (ctx->lives_texture) {
+    float w, h;
+    SDL_GetTextureSize(ctx->lives_texture, &w, &h);
+    SDL_FRect dst = {400.0f, 20.0f, w, h};
+    SDL_RenderTexture(ctx->renderer, ctx->lives_texture, NULL, &dst);
   }
 }
 
