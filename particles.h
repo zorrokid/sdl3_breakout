@@ -1,6 +1,5 @@
 #ifndef PARTICLES_H
 #define PARTICLES_H
-#include "bricks.h"
 #include <SDL3/SDL.h>
 
 #define MAX_PARTICLES 200
@@ -12,6 +11,8 @@ typedef struct {
   SDL_Color color;
   bool active;
 } Particle;
+
+struct Brick;
 
 void spawn_brick_burst(Particle *particles, struct Brick *brick,
                        SDL_Color color);

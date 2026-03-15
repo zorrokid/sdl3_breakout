@@ -1,7 +1,6 @@
 #ifndef BRICKS_H
 #define BRICKS_H
 
-#include "ball.h"
 #include "common.h"
 #include <SDL3/SDL.h>
 

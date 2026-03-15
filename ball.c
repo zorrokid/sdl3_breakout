@@ -36,7 +36,7 @@ void check_wall_collision(Ball *ball) {
   }
 }
 
-bool check_paddle_collision(Ball *ball, Paddle *paddle) {
+bool check_paddle_collision(Ball *ball, struct Paddle *paddle) {
   if (SDL_HasRectIntersectionFloat(&ball->rect, &paddle->rect)) {
     ball->dy *= -1.0f;
 
@@ -71,7 +71,7 @@ bool check_paddle_collision(Ball *ball, Paddle *paddle) {
   return false;
 }
 
-void set_ball_on_paddle(Ball *ball, Paddle *paddle) {
+void set_ball_on_paddle(Ball *ball, struct Paddle *paddle) {
   // in the center of the paddle
   ball->rect.x =
       paddle->rect.x + (paddle->rect.w / 2.0f) - (ball->rect.w / 2.0f);

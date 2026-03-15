@@ -9,7 +9,7 @@
 #define PADDLE_Y 560.0f
 #define PADDLE_SPEED 700.0f
 
-typedef struct {
+typedef struct Paddle {
   SDL_FRect rect;
   // This is used to calculate the ball's bounce angle based on how fast and
   // what direction the paddle is moving

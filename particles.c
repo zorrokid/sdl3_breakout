@@ -1,4 +1,5 @@
 #include "particles.h"
+#include "bricks.h"
 #include <stdlib.h>
 
 void spawn_brick_burst(Particle *particles, struct Brick *brick,
