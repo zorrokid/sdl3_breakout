@@ -76,6 +76,21 @@ void render_lives(struct GameContext *ctx) {
   }
 }
 
+void render_text_centered(struct GameContext *ctx, const char *text, float y,
+                          SDL_Color color, int font_size) {
+  SDL_Texture *texture =
+      create_text_texture(ctx->renderer, ctx->font, text, color);
+  if (texture) {
+    float w, h;
+    SDL_GetTextureSize(texture, &w, &h);
+    SDL_FRect dst = {(SCREEN_WIDTH - w) / 2.0f, y, w, h};
+    SDL_RenderTexture(ctx->renderer, texture, NULL, &dst);
+    SDL_DestroyTexture(texture);
+  } else {
+    SDL_Log("Failed to create texture for text: '%s'", text);
+  }
+}
+
 SDL_Texture *create_text_texture(SDL_Renderer *renderer, TTF_Font *font,
                                  const char *text, SDL_Color color) {
   if (!text || text[0] == '\0') {
