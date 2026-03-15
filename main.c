@@ -8,6 +8,13 @@
 #include "main.h"
 
 void on_brick_hit(struct GameContext *ctx, struct Brick *brick);
+void reset_game(GameContext *ctx);
+void update_gameplay(GameContext *ctx);
+void render_title(GameContext *ctx);
+void render_gameplay(GameContext *ctx);
+void render_game_over(GameContext *ctx);
+void render_game_won(GameContext *ctx);
+void render(GameContext *ctx);
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   (void)argc;                      // Unused
@@ -80,6 +87,51 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
   return SDL_APP_CONTINUE;
 }
 
+SDL_AppResult SDL_AppIterate(void *appstate) {
+  GameContext *ctx = (GameContext *)appstate;
+  if (ctx->state == STATE_PLAYING) {
+    update_gameplay(ctx);
+  }
+  render(ctx);
+  return SDL_APP_CONTINUE;
+}
+
+void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+  (void)result; // Unused
+  GameContext *ctx = (GameContext *)appstate;
+  if (ctx) {
+    SDL_DestroyRenderer(ctx->renderer);
+    SDL_DestroyWindow(ctx->window);
+    SDL_free(ctx);
+    if (ctx->score_texture) {
+      SDL_DestroyTexture(ctx->score_texture);
+    }
+    if (ctx->lives_texture) {
+      SDL_DestroyTexture(ctx->lives_texture);
+    }
+    if (ctx->font) {
+      TTF_CloseFont(ctx->font);
+    }
+    TTF_Quit();
+  }
+}
+
+void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
+  spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255});
+  ctx->shake_timer_s = 0.3f; // Shake for 0.3 seconds
+  ctx->shake_intensity_pixels =
+      5.0f + (ctx->combo_count * 2.0f); // Increase shake with combo
+  // combo and score
+  ctx->combo_count++;
+  int base_score = 100;
+  int earned = base_score * ctx->combo_count; // More points for combos
+  ctx->score += earned;
+  SDL_Log("Brick hit! Combo: %d, Score Earned: %d, Total Score: %d",
+          ctx->combo_count, earned, ctx->score);
+  // TODO: add sound effect here
+  // TODO: increment score here
+}
+
 void reset_game(GameContext *ctx) {
   init_paddle(&ctx->paddle);
   init_ball(&ctx->ball);
@@ -147,48 +199,6 @@ void update_gameplay(GameContext *ctx) {
 
   // Set the viewport to shift the coordinate system for the shake effect
   SDL_SetRenderViewport(ctx->renderer, &viewport);
-
-  // clear screen to black
-  /*SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
-  SDL_RenderClear(ctx->renderer);
-
-  render_paddle(ctx->renderer, &ctx->paddle);
-  render_ball(ctx->renderer, &ctx->ball);
-  render_bricks(ctx->renderer, ctx->bricks);
-  render_particles(ctx->renderer, ctx->particles);
-  render_score(ctx);
-  render_lives(ctx);
-
-  SDL_RenderPresent(ctx->renderer);*/
-}
-
-void update_title(GameContext *ctx) {
-  // clear screen to black
-  SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
-  SDL_RenderClear(ctx->renderer);
-}
-
-void update_game_over(GameContext *ctx) {
-  render_paddle(ctx->renderer, &ctx->paddle);
-  render_bricks(ctx->renderer, ctx->bricks);
-
-  // Dim the screen with a semi-transparent overlay
-  SDL_SetRenderDrawBlendMode(ctx->renderer, SDL_BLENDMODE_BLEND);
-  SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 150); // Semi-transparent black
-  SDL_FRect full_screen_overlay = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-  SDL_RenderFillRect(ctx->renderer, &full_screen_overlay);
-
-  // Render "Game Over" text
-  SDL_Color red = {255, 0, 0, 255};
-  SDL_Color white = {255, 255, 255, 255};
-  SDL_SetRenderDrawBlendMode(ctx->renderer, SDL_BLENDMODE_NONE);
-  render_text_centered(ctx, "GAME OVER", SCREEN_HEIGHT / 2.0f - 40, red, 48);
-}
-
-void update_game_won(GameContext *ctx) {
-  // clear screen to black
-  SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
-  SDL_RenderClear(ctx->renderer);
 }
 
 void render_title(GameContext *ctx) {
@@ -249,64 +259,4 @@ void render(GameContext *ctx) {
   }
 
   SDL_RenderPresent(ctx->renderer);
-}
-
-void update(GameContext *ctx) {
-  switch (ctx->state) {
-  case STATE_TITLE:
-    update_title(ctx);
-    break;
-  case STATE_PLAYING:
-    update_gameplay(ctx);
-    break;
-  case STATE_GAME_OVER:
-    update_game_over(ctx);
-    break;
-  case STATE_GAME_WON:
-    update_game_won(ctx);
-    break;
-  }
-}
-
-SDL_AppResult SDL_AppIterate(void *appstate) {
-  GameContext *ctx = (GameContext *)appstate;
-  update(ctx);
-  render(ctx);
-  return SDL_APP_CONTINUE;
-}
-
-void SDL_AppQuit(void *appstate, SDL_AppResult result) {
-  (void)result; // Unused
-  GameContext *ctx = (GameContext *)appstate;
-  if (ctx) {
-    SDL_DestroyRenderer(ctx->renderer);
-    SDL_DestroyWindow(ctx->window);
-    SDL_free(ctx);
-    if (ctx->score_texture) {
-      SDL_DestroyTexture(ctx->score_texture);
-    }
-    if (ctx->lives_texture) {
-      SDL_DestroyTexture(ctx->lives_texture);
-    }
-    if (ctx->font) {
-      TTF_CloseFont(ctx->font);
-    }
-    TTF_Quit();
-  }
-}
-
-void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
-  spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255});
-  ctx->shake_timer_s = 0.3f; // Shake for 0.3 seconds
-  ctx->shake_intensity_pixels =
-      5.0f + (ctx->combo_count * 2.0f); // Increase shake with combo
-  // combo and score
-  ctx->combo_count++;
-  int base_score = 100;
-  int earned = base_score * ctx->combo_count; // More points for combos
-  ctx->score += earned;
-  SDL_Log("Brick hit! Combo: %d, Score Earned: %d, Total Score: %d",
-          ctx->combo_count, earned, ctx->score);
-  // TODO: add sound effect here
-  // TODO: increment score here
 }
