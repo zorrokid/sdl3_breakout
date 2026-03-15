@@ -38,6 +38,20 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   // Prorably not necessary, since we used SDL_calloc, which zeroes the memory
   memset(ctx->particles, 0, sizeof(ctx->particles));
 
+  if (!TTF_Init()) {
+    SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+    return SDL_APP_FAILURE;
+  }
+
+  // Load a font
+  ctx->font =
+      TTF_OpenFont("assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf", 24);
+
+  if (!ctx->font) {
+    SDL_Log("Failed to load font: %s", SDL_GetError());
+    return SDL_APP_FAILURE;
+  }
+
   return SDL_APP_CONTINUE;
 }
 
@@ -139,6 +153,7 @@ void update_gameplay(GameContext *ctx) {
   render_ball(ctx->renderer, &ctx->ball);
   render_bricks(ctx->renderer, ctx->bricks);
   render_particles(ctx->renderer, ctx->particles);
+  render_score(ctx);
 
   SDL_RenderPresent(ctx->renderer);
 }
@@ -188,6 +203,13 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     SDL_DestroyRenderer(ctx->renderer);
     SDL_DestroyWindow(ctx->window);
     SDL_free(ctx);
+    if (ctx->score_texture) {
+      SDL_DestroyTexture(ctx->score_texture);
+    }
+    if (ctx->font) {
+      TTF_CloseFont(ctx->font);
+    }
+    TTF_Quit();
   }
 }
 

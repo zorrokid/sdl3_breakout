@@ -18,6 +18,7 @@ add_executable(breakout
     paddle.c 
     particles.c 
     events.c
+    textures.c
 )
 
 # 3. Link the libraries
