@@ -1,7 +1,10 @@
+#ifndef MAIN_H
+#define MAIN_H
 #include "ball.h"
 #include "bricks.h"
 #include "paddle.h"
 #include "particles.h"
+#include "events.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_keycode.h>
@@ -35,3 +38,5 @@ typedef struct GameContext {
   int combo_count;
   GameState state;
 } GameContext;
+
+#endif // MAIN_H

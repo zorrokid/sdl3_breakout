@@ -53,26 +53,15 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     return SDL_APP_SUCCESS; // This exits the app cleanly
   }
 
-  if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_KEY_UP) {
-    bool is_down = (event->type == SDL_EVENT_KEY_DOWN);
-
-    switch (event->key.key) {
-    case SDLK_LEFT:
-      ctx->left_pressed = is_down;
-      break;
-    case SDLK_RIGHT:
-      ctx->right_pressed = is_down;
-      break;
-    case SDLK_SPACE:
-      if (is_down)
-        ctx->ball_launched = true;
-      break;
-    case SDLK_ESCAPE:
-      return SDL_APP_SUCCESS;
-      break;
-    }
+  switch (ctx->state) {
+  case STATE_TITLE:
+    break;
+  case STATE_PLAYING:
+    return handle_game_events(ctx, event);
+    break;
+  case STATE_GAME_OVER:
+    break;
   }
-
   return SDL_APP_CONTINUE;
 }
 
