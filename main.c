@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "common.h"
 #include "main.h"
 
 void on_brick_hit(struct GameContext *ctx, struct Brick *brick);
