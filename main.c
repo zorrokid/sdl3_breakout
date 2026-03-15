@@ -10,6 +10,8 @@
 void on_brick_hit(struct GameContext *ctx, struct Brick *brick);
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
+  (void)argc;                      // Unused
+  (void)argv;                      // Unused
   srand((unsigned int)time(NULL)); // Seed random for particle effects
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
@@ -158,6 +160,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 }
 
 void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+  (void)result; // Unused
   GameContext *ctx = (GameContext *)appstate;
   if (ctx) {
     SDL_DestroyRenderer(ctx->renderer);
