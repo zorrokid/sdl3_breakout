@@ -32,7 +32,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   // Enable VSync so we don't melt the GPU
   SDL_SetRenderVSync(ctx->renderer, 1);
 
-  reset_game(ctx);
+  ctx->state = STATE_TITLE;
+  // reset_game(ctx);
 
   // Prorably not necessary, since we used SDL_calloc, which zeroes the memory
   memset(ctx->particles, 0, sizeof(ctx->particles));
@@ -102,9 +103,6 @@ void update_gameplay(GameContext *ctx) {
     if (ctx->lives <= 0) {
       SDL_Log("Game Over!");
       ctx->state = STATE_GAME_OVER;
-      // Game over, reset everything
-      // TODO: show game over screen
-      // reset_game(ctx);
     } else {
       // Just reset the ball and paddle
       init_paddle(&ctx->paddle);
@@ -117,9 +115,9 @@ void update_gameplay(GameContext *ctx) {
   update_particles(ctx->particles, delta_time);
 
   if (check_win_condition(ctx->bricks)) {
+    // TODO: Check if it's the last level, otherwise proceed to next level
     SDL_Log("You Win!");
     ctx->state = STATE_GAME_WON;
-    // reset_game(ctx);
   }
 
   // Calculate shake offset if shaking
@@ -145,17 +143,38 @@ void update_gameplay(GameContext *ctx) {
   SDL_RenderPresent(ctx->renderer);
 }
 
+void update_title(GameContext *ctx) {
+  // clear screen to black
+  SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
+  SDL_RenderClear(ctx->renderer);
+}
+
+void update_game_over(GameContext *ctx) {
+  // clear screen to black
+  SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
+  SDL_RenderClear(ctx->renderer);
+}
+
+void update_game_won(GameContext *ctx) {
+  // clear screen to black
+  SDL_SetRenderDrawColor(ctx->renderer, 0, 0, 0, 255);
+  SDL_RenderClear(ctx->renderer);
+}
+
 SDL_AppResult SDL_AppIterate(void *appstate) {
   GameContext *ctx = (GameContext *)appstate;
   switch (ctx->state) {
   case STATE_TITLE:
+    update_title(ctx);
     break;
   case STATE_PLAYING:
     update_gameplay(ctx);
     break;
   case STATE_GAME_OVER:
+    update_game_over(ctx);
     break;
   case STATE_GAME_WON:
+    update_game_won(ctx);
     break;
   }
 
