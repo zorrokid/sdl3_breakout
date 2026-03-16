@@ -1,6 +1,7 @@
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_render.h>
+#include <SDL3/SDL_video.h>
 #define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -29,11 +30,19 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   *appstate = ctx;
 
+  ctx->window =
+      SDL_CreateWindow("Breakout SDL3", SCREEN_WIDTH, SCREEN_HEIGHT,
+                       SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+
+  ctx->renderer = SDL_CreateRenderer(ctx->window, NULL);
+
+  SDL_SetRenderLogicalPresentation(ctx->renderer, SCREEN_WIDTH, SCREEN_HEIGHT,
+                                   SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
   // Create a 800x600 window and a renderer with VSync
-  if (!SDL_CreateWindowAndRenderer("Breakout SDL3", SCREEN_WIDTH, SCREEN_HEIGHT,
-                                   0, &ctx->window, &ctx->renderer)) {
-    return SDL_APP_FAILURE;
-  }
+  /*if (!SDL_CreateWindowAndRenderer("Breakout SDL3", SCREEN_WIDTH,
+  SCREEN_HEIGHT, 0, &ctx->window, &ctx->renderer)) { return SDL_APP_FAILURE;
+  }*/
 
   SDL_SetRenderVSync(ctx->renderer, 1);
 
