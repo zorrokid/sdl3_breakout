@@ -20,6 +20,23 @@ typedef enum {
   STATE_GAME_WON
 } GameState;
 
+typedef enum {
+  SFX_BRICK_HIT,
+  SFX_PADDLE_HIT,
+  // NOTE: keep SFX_COUNT last
+  SFX_COUNT
+} SoundID;
+
+static const char *SFX_PATHS[SFX_COUNT] = {"assets/sounds/brick_hit.wav",
+                                           "assets/sounds/paddle_hit.wav"};
+
+typedef struct {
+  Uint8 *data;
+  Uint32 length;
+  SDL_AudioSpec spec;
+  SDL_AudioStream *stream;
+} SoundEffect;
+
 typedef struct GameContext {
   SDL_Window *window;
   SDL_Renderer *renderer;
@@ -53,10 +70,7 @@ typedef struct GameContext {
   SDL_Texture *lives_texture;
 
   SDL_AudioDeviceID audio_device;
-  SDL_AudioStream *sfx_stream;
-  Uint8 *wav_data;
-  Uint32 wav_length;
-  SDL_AudioSpec wav_spec;
+  SoundEffect sound_effects[SFX_COUNT];
 
 } GameContext;
 

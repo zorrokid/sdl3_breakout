@@ -20,6 +20,9 @@ void render(GameContext *ctx);
 void play_hit_sound(GameContext *ctx);
 bool init_ttf(GameContext *ctx);
 bool init_audio(GameContext *ctx);
+bool load_sfx(GameContext *ctx, SoundID id, const char *path,
+              SDL_AudioDeviceID device);
+void play_sfx(GameContext *ctx, SoundID id);
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   (void)argc;                      // Unused
@@ -95,7 +98,6 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   if (ctx) {
     SDL_DestroyRenderer(ctx->renderer);
     SDL_DestroyWindow(ctx->window);
-    SDL_free(ctx);
     if (ctx->score_texture) {
       SDL_DestroyTexture(ctx->score_texture);
     }
@@ -105,16 +107,28 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     if (ctx->font) {
       TTF_CloseFont(ctx->font);
     }
-    if (ctx->wav_data) {
-      SDL_free(ctx->wav_data);
-    }
-    if (ctx->sfx_stream) {
-      SDL_DestroyAudioStream(ctx->sfx_stream);
+    for (int i = 0; i < SFX_COUNT; i++) {
+      SDL_Log("Checking SoundID %d | Stream: %p | Data: %p", i,
+              (void *)ctx->sound_effects[i].stream,
+              (void *)ctx->sound_effects[i].data);
+      if (ctx->sound_effects[i].stream != NULL) {
+        SDL_DestroyAudioStream(ctx->sound_effects[i].stream);
+        ctx->sound_effects[i].stream = NULL;
+        SDL_Log("Destroyed audio stream for SoundID %d", i);
+      }
+      if (ctx->sound_effects[i].data != NULL) {
+        SDL_free(ctx->sound_effects[i].data);
+        ctx->sound_effects[i].data = NULL;
+        SDL_Log("Freed audio data for SoundID %d", i);
+      }
+      SDL_Log("Finished cleaning SoundID %d", i);
     }
     if (ctx->audio_device) {
+      SDL_Log("Closing audio device: %d", ctx->audio_device);
       SDL_CloseAudioDevice(ctx->audio_device);
     }
     TTF_Quit();
+    SDL_free(ctx);
   }
 }
 
@@ -129,7 +143,9 @@ void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
   int earned = base_score * ctx->combo_count; // More points for combos
   ctx->score += earned;
 
-  if (ctx->sfx_stream) {
+  SDL_AudioStream *stream = ctx->sound_effects[SFX_BRICK_HIT].stream;
+
+  if (stream) {
     // Calculate sound frequency based on combo count
     float ratio = 1.0f + (ctx->combo_count * 0.05f);
 
@@ -137,9 +153,12 @@ void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
     if (ratio > 2.0f)
       ratio = 2.0f;
 
-    SDL_SetAudioStreamFrequencyRatio(ctx->sfx_stream, ratio);
+    SDL_SetAudioStreamFrequencyRatio(stream, ratio);
 
-    play_hit_sound(ctx);
+    SDL_Log("Playing SFX with frequency ratio: %.2f for combo count: %d", ratio,
+            ctx->combo_count);
+    play_sfx(ctx, SFX_BRICK_HIT);
+    // play_hit_sound(ctx);
   }
 }
 
@@ -271,15 +290,6 @@ void render(GameContext *ctx) {
   SDL_RenderPresent(ctx->renderer);
 }
 
-void play_hit_sound(GameContext *ctx) {
-  SDL_Log("Playing hit sound...");
-  if (ctx->sfx_stream && ctx->wav_data) {
-    SDL_PutAudioStreamData(ctx->sfx_stream, ctx->wav_data, ctx->wav_length);
-    int queued = SDL_GetAudioStreamQueued(ctx->sfx_stream);
-    SDL_Log("Audio queued: %d bytes", queued);
-  }
-}
-
 bool init_ttf(GameContext *ctx) {
   if (!TTF_Init()) {
     SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
@@ -296,12 +306,9 @@ bool init_ttf(GameContext *ctx) {
 }
 
 bool init_audio(GameContext *ctx) {
-  if (!SDL_LoadWAV("assets/sounds/hit.wav", &ctx->wav_spec, &ctx->wav_data,
-                   &ctx->wav_length)) {
-    SDL_Log("Failed to load sound: %s", SDL_GetError());
-    return false;
-  }
-
+  SDL_memset(ctx->sound_effects, 0,
+             sizeof(ctx->sound_effects)); // Ensure all sound effects are
+                                          // initialized to zero
   ctx->audio_device =
       SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
   if (!ctx->audio_device) {
@@ -309,16 +316,57 @@ bool init_audio(GameContext *ctx) {
     return false;
   }
 
-  ctx->sfx_stream = SDL_CreateAudioStream(&ctx->wav_spec, NULL);
-  if (!ctx->sfx_stream) {
-    SDL_Log("Failed to create audio stream: %s", SDL_GetError());
+  for (int i = 0; i < SFX_COUNT; i++) {
+    if (!load_sfx(ctx, i, SFX_PATHS[i], ctx->audio_device)) {
+      SDL_Log("Failed to load sound effect for SoundID %d from path: %s", i,
+              SFX_PATHS[i]);
+      return false;
+    }
+  }
+  SDL_ResumeAudioDevice(ctx->audio_device);
+  SDL_Log("Using audio driver: %s", SDL_GetCurrentAudioDriver());
+  return true;
+}
+
+bool load_sfx(GameContext *ctx, SoundID id, const char *path,
+              SDL_AudioDeviceID device) {
+  ctx->sound_effects[id].data = NULL;   // Ensure data is NULL before Loading
+  ctx->sound_effects[id].stream = NULL; // Ensure stream is NULL before Loading
+  SDL_Log("Loading sound effect for SoundID %d from path: %s", id, path);
+  if (!path) {
+    SDL_Log("No path provided for SoundID: %d", id);
     return false;
   }
 
-  SDL_SetAudioStreamGain(ctx->sfx_stream, 1.0f);
-  SDL_BindAudioStream(ctx->audio_device, ctx->sfx_stream);
-  SDL_ResumeAudioDevice(ctx->audio_device);
+  if (!SDL_LoadWAV(path, &ctx->sound_effects[id].spec,
+                   &ctx->sound_effects[id].data,
+                   &ctx->sound_effects[id].length)) {
+    SDL_Log("Failed to load sound: %s", SDL_GetError());
+    return false;
+  }
 
-  SDL_Log("Using audio driver: %s", SDL_GetCurrentAudioDriver());
+  SDL_AudioStream *stream =
+      SDL_CreateAudioStream(&ctx->sound_effects[id].spec, NULL);
+  if (!stream) {
+    SDL_Log("Failed to create audio stream for SoundID %d: %s", id,
+            SDL_GetError());
+    return false;
+  }
+  ctx->sound_effects[id].stream = stream;
+  SDL_SetAudioStreamGain(ctx->sound_effects[id].stream, 1.0f);
+  SDL_BindAudioStream(device, ctx->sound_effects[id].stream);
   return true;
+}
+
+void play_sfx(GameContext *ctx, SoundID id) {
+  SDL_Log("Playing sound effect for SoundID %d", id);
+  if (id < 0 || id >= SFX_COUNT) {
+    SDL_Log("Invalid SoundID: %d", id);
+    return;
+  }
+  SoundEffect *sfx = &ctx->sound_effects[id];
+  if (sfx->stream && sfx->data) {
+    SDL_Log("Putting audio data for SoundID %d: %d bytes", id, sfx->length);
+    SDL_PutAudioStreamData(sfx->stream, sfx->data, sfx->length);
+  }
 }
