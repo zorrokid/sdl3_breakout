@@ -9,7 +9,6 @@
 
 #include "main.h"
 
-void on_brick_hit(struct GameContext *ctx, struct Brick *brick);
 void reset_game(GameContext *ctx);
 void update_gameplay(GameContext *ctx);
 void render_title(GameContext *ctx);
@@ -134,34 +133,6 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
   }
 }
 
-void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
-  spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255});
-  ctx->shake_timer_s = 0.3f; // Shake for 0.3 seconds
-  ctx->shake_intensity_pixels =
-      5.0f + (ctx->combo_count * 2.0f); // Increase shake with combo
-  // combo and score
-  ctx->combo_count++;
-  int base_score = 100;
-  int earned = base_score * ctx->combo_count; // More points for combos
-  ctx->score += earned;
-
-  SDL_AudioStream *stream = ctx->sound_effects[SFX_BRICK_HIT].stream;
-
-  if (stream) {
-    // Calculate sound frequency based on combo count
-    float ratio = 1.0f + (ctx->combo_count * 0.05f);
-
-    // Cap the ratio to double speed
-    if (ratio > 2.0f)
-      ratio = 2.0f;
-
-    SDL_SetAudioStreamFrequencyRatio(stream, ratio);
-
-    SDL_Log("Playing SFX with frequency ratio: %.2f for combo count: %d", ratio,
-            ctx->combo_count);
-  }
-}
-
 void reset_game(GameContext *ctx) {
   init_paddle(&ctx->paddle);
   init_ball(&ctx->ball);
@@ -189,7 +160,7 @@ void update_gameplay(GameContext *ctx) {
 
     // ball collision detection
     check_wall_collision(&ctx->ball);
-    check_ball_brick_collision(ctx, on_brick_hit);
+    check_ball_brick_collision(ctx);
     if (check_paddle_collision(ctx)) {
       ctx->combo_count = 0; // Reset combo on paddle hit
     }
@@ -371,19 +342,52 @@ void play_sfx(GameContext *ctx, SoundID id) {
   }
 }
 
+void handle_brick_hit(GameContext *ctx) {
+  ctx->shake_timer_s = 0.3f; // Shake for 0.3 seconds
+  ctx->shake_intensity_pixels =
+      5.0f + (ctx->combo_count * 2.0f); // Increase shake with combo
+  // combo and score
+  ctx->combo_count++;
+  int base_score = 100;
+  int earned = base_score * ctx->combo_count; // More points for combos
+  ctx->score += earned;
+
+  SDL_AudioStream *stream = ctx->sound_effects[SFX_BRICK_HIT].stream;
+
+  if (stream) {
+    // Calculate sound frequency based on combo count
+    float ratio = 1.0f + (ctx->combo_count * 0.05f);
+
+    // Cap the ratio to double speed
+    if (ratio > 2.0f)
+      ratio = 2.0f;
+
+    SDL_SetAudioStreamFrequencyRatio(stream, ratio);
+
+    SDL_Log("Playing SFX with frequency ratio: %.2f for combo count: %d", ratio,
+            ctx->combo_count);
+  }
+
+  play_sfx(ctx, SFX_BRICK_HIT);
+}
+
+void handle_paddle_hit(GameContext *ctx) { play_sfx(ctx, SFX_PADDLE_HIT); }
+
+void handle_wall_hit(GameContext *ctx) {
+  // Optional: play a wall hit sound
+}
+
 void handle_collision_logic(void *userdata, int event_type) {
   GameContext *ctx = (GameContext *)userdata;
   switch (event_type) {
   case EVENT_PADDLE_HIT:
-    // TODO: add rest of the logic
-    play_sfx(ctx, SFX_PADDLE_HIT);
+    handle_paddle_hit(ctx);
     break;
   case EVENT_BRICK_HIT:
-    // TODO: add rest of the logic
-    play_sfx(ctx, SFX_BRICK_HIT);
+    handle_brick_hit(ctx);
     break;
   case EVENT_WALL_HIT:
-    // Optional: play a wall hit sound
+    handle_wall_hit(ctx);
     break;
   }
 }

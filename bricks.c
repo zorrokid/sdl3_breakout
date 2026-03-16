@@ -33,8 +33,7 @@ void render_bricks(SDL_Renderer *renderer, Brick *bricks) {
   }
 }
 
-void check_ball_brick_collision(struct GameContext *ctx,
-                                BrickHitCallback on_brick_hit) {
+void check_ball_brick_collision(struct GameContext *ctx) {
   for (int i = 0; i < BRICK_ROWS * BRICK_COLS; i++) {
     Brick *brick = &ctx->bricks[i];
     if (brick->active &&
@@ -71,8 +70,8 @@ void check_ball_brick_collision(struct GameContext *ctx,
         // top / bottom hit
         ctx->ball.dy *= -1.0f;
       }
-      // TODO: replace with on_collision callback
-      on_brick_hit(ctx, brick);
+
+      spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255});
 
       if (ctx->on_collision)
         ctx->on_collision(ctx, EVENT_BRICK_HIT);

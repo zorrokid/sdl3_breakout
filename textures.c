@@ -2,7 +2,7 @@
 #include "textures.h"
 #include "main.h"
 
-void update_score_texture(struct GameContext *ctx) {
+void update_score_texture(GameContext *ctx) {
   if (!ctx->font) {
     SDL_Log("Font not loaded, cannot render score.");
     return;
@@ -29,7 +29,7 @@ void update_score_texture(struct GameContext *ctx) {
   }
 }
 
-void render_score(struct GameContext *ctx) {
+void render_score(GameContext *ctx) {
   // Render the score texture if it exists
   if (ctx->score_texture) {
     float w, h;
@@ -39,7 +39,7 @@ void render_score(struct GameContext *ctx) {
   }
 }
 
-void update_lives_texture(struct GameContext *ctx) {
+void update_lives_texture(GameContext *ctx) {
   if (!ctx->font) {
     SDL_Log("Font not loaded, cannot render score.");
     return;
@@ -66,7 +66,7 @@ void update_lives_texture(struct GameContext *ctx) {
   }
 }
 
-void render_lives(struct GameContext *ctx) {
+void render_lives(GameContext *ctx) {
   // Render the lives texture if it exists
   if (ctx->lives_texture) {
     float w, h;
@@ -76,7 +76,7 @@ void render_lives(struct GameContext *ctx) {
   }
 }
 
-void render_text_centered(struct GameContext *ctx, const char *text, float y,
+void render_text_centered(GameContext *ctx, const char *text, float y,
                           SDL_Color color, int font_size) {
   SDL_Texture *texture =
       create_text_texture(ctx->renderer, ctx->font, text, color);

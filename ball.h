@@ -2,25 +2,14 @@
 #define BALL_H
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_rect.h>
-
-#define BALL_SIZE 16.0f
-#define BALL_SPEED 350.0f
-
-typedef struct {
-  SDL_FRect rect;
-  float dx;
-  float dy;
-} Ball;
-
-struct Paddle;
-struct GameContext;
+#include "common.h"
 
 void init_ball(Ball *ball);
 void move_ball(Ball *ball, float delta_time);
 void set_ball_on_paddle(Ball *ball, struct Paddle *paddle);
-void render_ball(SDL_Renderer *renderer, Ball *ball);
+void render_ball(SDL_Renderer *renderer, struct Ball *ball);
 bool is_ball_out(Ball *ball);
 void check_wall_collision(Ball *ball);
-bool check_paddle_collision(struct GameContext *ctx);
+bool check_paddle_collision(GameContext *ctx);
 
 #endif // BALL_H

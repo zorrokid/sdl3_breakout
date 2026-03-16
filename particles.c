@@ -2,8 +2,7 @@
 #include "bricks.h"
 #include <stdlib.h>
 
-void spawn_brick_burst(Particle *particles, struct Brick *brick,
-                       SDL_Color color) {
+void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color) {
   int spawned = 0;
   float cx = brick->rect.x + (brick->rect.w / 2.0f);
   float cy = brick->rect.y + (brick->rect.h / 2.0f);

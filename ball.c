@@ -37,7 +37,7 @@ void check_wall_collision(Ball *ball) {
   }
 }
 
-bool check_paddle_collision(struct GameContext *ctx) {
+bool check_paddle_collision(GameContext *ctx) {
   Ball *ball = &ctx->ball;
   Paddle *paddle = &ctx->paddle;
   if (SDL_HasRectIntersectionFloat(&ball->rect, &paddle->rect)) {
