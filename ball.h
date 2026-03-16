@@ -1,7 +1,5 @@
 #ifndef BALL_H
 #define BALL_H
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_rect.h>
 #include "common.h"
 
 void init_ball(Ball *ball);

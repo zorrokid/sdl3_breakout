@@ -1,5 +1,5 @@
 #include "events.h"
-#include "main.h"
+#include "gameplay.h"
 
 SDL_AppResult handle_title_events(GameContext *ctx, SDL_Event *event) {
   if (event->type == SDL_EVENT_KEY_DOWN) {

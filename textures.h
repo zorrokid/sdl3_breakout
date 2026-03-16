@@ -1,7 +1,5 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
-#include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include "common.h"
 
 bool init_ttf(GameContext *ctx);

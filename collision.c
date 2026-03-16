@@ -1,5 +1,4 @@
 #include "collision.h"
-#include "common.h"
 #include "sfx.h"
 
 void handle_brick_hit(GameContext *ctx) {

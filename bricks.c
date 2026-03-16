@@ -1,6 +1,4 @@
 #include "bricks.h"
-#include "common.h"
-#include "main.h"
 #include "particles.h"
 
 void init_bricks(Brick *bricks) {

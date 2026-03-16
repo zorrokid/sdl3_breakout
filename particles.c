@@ -1,5 +1,4 @@
 #include "particles.h"
-#include "bricks.h"
 #include <stdlib.h>
 
 void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color) {

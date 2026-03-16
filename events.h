@@ -1,6 +1,5 @@
 #ifndef EVENTS_H
 #define EVENTS_H
-#include <SDL3/SDL.h>
 #include "common.h"
 
 SDL_AppResult handle_game_events(GameContext *ctx, SDL_Event *event);

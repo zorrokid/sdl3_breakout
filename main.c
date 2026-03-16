@@ -8,9 +8,10 @@
 #include <time.h>
 #include "sfx.h"
 #include "gfx.h"
-#include "main.h"
 #include "collision.h"
 #include "gameplay.h"
+#include "events.h"
+#include "textures.h"
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   (void)argc;                      // Unused

@@ -2,7 +2,6 @@
 #define BRICKS_H
 
 #include "common.h"
-#include <SDL3/SDL.h>
 
 struct GameContext;
 

@@ -1,6 +1,5 @@
 #ifndef PARTICLES_H
 #define PARTICLES_H
-#include <SDL3/SDL.h>
 #include "common.h"
 
 void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color);

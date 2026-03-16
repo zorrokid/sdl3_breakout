@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "textures.h"
-#include "main.h"
 
 bool init_ttf(GameContext *ctx) {
   if (!TTF_Init()) {

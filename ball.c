@@ -1,7 +1,4 @@
 #include "ball.h"
-#include "common.h"
-#include "paddle.h"
-#include "main.h"
 
 void init_ball(Ball *ball) {
   ball->rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};

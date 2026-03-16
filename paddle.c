@@ -1,5 +1,5 @@
 #include "paddle.h"
-#include "common.h"
+#include "bricks.h"
 
 void init_paddle(Paddle *paddle) {
   paddle->rect.w = PADDLE_WIDTH;

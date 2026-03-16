@@ -125,3 +125,4 @@ static const char *SFX_PATHS[SFX_COUNT] = {"assets/sounds/brick_hit.wav",
                                            "assets/sounds/paddle_hit.wav"};
 
 #endif // COMMON_H
+       //

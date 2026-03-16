@@ -1,8 +1,6 @@
 #ifndef PADDLE_H
 #define PADDLE_H
 
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_rect.h>
 #include "common.h"
 
 void init_paddle(Paddle *paddle);
