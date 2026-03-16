@@ -128,9 +128,19 @@ void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
   int base_score = 100;
   int earned = base_score * ctx->combo_count; // More points for combos
   ctx->score += earned;
-  play_hit_sound(ctx);
-  SDL_Log("Brick hit! Combo: %d, Score Earned: %d, Total Score: %d",
-          ctx->combo_count, earned, ctx->score);
+
+  if (ctx->sfx_stream) {
+    // Calculate sound frequency based on combo count
+    float ratio = 1.0f + (ctx->combo_count * 0.05f);
+
+    // Cap the ratio to double speed
+    if (ratio > 2.0f)
+      ratio = 2.0f;
+
+    SDL_SetAudioStreamFrequencyRatio(ctx->sfx_stream, ratio);
+
+    play_hit_sound(ctx);
+  }
 }
 
 void reset_game(GameContext *ctx) {
