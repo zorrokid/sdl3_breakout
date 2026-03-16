@@ -37,6 +37,10 @@ typedef struct {
   SDL_AudioStream *stream;
 } SoundEffect;
 
+typedef void (*CollisionCallback)(void *userdata, int event_type);
+
+typedef enum { EVENT_PADDLE_HIT, EVENT_BRICK_HIT, EVENT_WALL_HIT } GameEvent;
+
 typedef struct GameContext {
   SDL_Window *window;
   SDL_Renderer *renderer;
@@ -71,6 +75,8 @@ typedef struct GameContext {
 
   SDL_AudioDeviceID audio_device;
   SoundEffect sound_effects[SFX_COUNT];
+
+  CollisionCallback on_collision;
 
 } GameContext;
 

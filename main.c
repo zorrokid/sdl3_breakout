@@ -23,6 +23,7 @@ bool init_audio(GameContext *ctx);
 bool load_sfx(GameContext *ctx, SoundID id, const char *path,
               SDL_AudioDeviceID device);
 void play_sfx(GameContext *ctx, SoundID id);
+void handle_collision_logic(void *userdata, int event_type);
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   (void)argc;                      // Unused
@@ -49,6 +50,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_SetRenderVSync(ctx->renderer, 1);
 
   ctx->state = STATE_TITLE;
+  ctx->on_collision = handle_collision_logic;
 
   // Prorably not necessary, since we used SDL_calloc, which zeroes the memory
   memset(ctx->particles, 0, sizeof(ctx->particles));
@@ -157,8 +159,6 @@ void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
 
     SDL_Log("Playing SFX with frequency ratio: %.2f for combo count: %d", ratio,
             ctx->combo_count);
-    play_sfx(ctx, SFX_BRICK_HIT);
-    // play_hit_sound(ctx);
   }
 }
 
@@ -190,7 +190,7 @@ void update_gameplay(GameContext *ctx) {
     // ball collision detection
     check_wall_collision(&ctx->ball);
     check_ball_brick_collision(ctx, on_brick_hit);
-    if (check_paddle_collision(&ctx->ball, &ctx->paddle)) {
+    if (check_paddle_collision(ctx)) {
       ctx->combo_count = 0; // Reset combo on paddle hit
     }
     if (is_ball_out(&ctx->ball)) {
@@ -368,5 +368,22 @@ void play_sfx(GameContext *ctx, SoundID id) {
   if (sfx->stream && sfx->data) {
     SDL_Log("Putting audio data for SoundID %d: %d bytes", id, sfx->length);
     SDL_PutAudioStreamData(sfx->stream, sfx->data, sfx->length);
+  }
+}
+
+void handle_collision_logic(void *userdata, int event_type) {
+  GameContext *ctx = (GameContext *)userdata;
+  switch (event_type) {
+  case EVENT_PADDLE_HIT:
+    // TODO: add rest of the logic
+    play_sfx(ctx, SFX_PADDLE_HIT);
+    break;
+  case EVENT_BRICK_HIT:
+    // TODO: add rest of the logic
+    play_sfx(ctx, SFX_BRICK_HIT);
+    break;
+  case EVENT_WALL_HIT:
+    // Optional: play a wall hit sound
+    break;
   }
 }

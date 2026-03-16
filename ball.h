@@ -13,6 +13,7 @@ typedef struct {
 } Ball;
 
 struct Paddle;
+struct GameContext;
 
 void init_ball(Ball *ball);
 void move_ball(Ball *ball, float delta_time);
@@ -20,6 +21,6 @@ void set_ball_on_paddle(Ball *ball, struct Paddle *paddle);
 void render_ball(SDL_Renderer *renderer, Ball *ball);
 bool is_ball_out(Ball *ball);
 void check_wall_collision(Ball *ball);
-bool check_paddle_collision(Ball *ball, struct Paddle *paddle);
+bool check_paddle_collision(struct GameContext *ctx);
 
 #endif // BALL_H

@@ -71,7 +71,12 @@ void check_ball_brick_collision(struct GameContext *ctx,
         // top / bottom hit
         ctx->ball.dy *= -1.0f;
       }
+      // TODO: replace with on_collision callback
       on_brick_hit(ctx, brick);
+
+      if (ctx->on_collision)
+        ctx->on_collision(ctx, EVENT_BRICK_HIT);
+
       brick->active = false;
       break;
     }

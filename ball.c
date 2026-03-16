@@ -1,6 +1,7 @@
 #include "ball.h"
 #include "common.h"
 #include "paddle.h"
+#include "main.h"
 
 void init_ball(Ball *ball) {
   ball->rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
@@ -36,7 +37,9 @@ void check_wall_collision(Ball *ball) {
   }
 }
 
-bool check_paddle_collision(Ball *ball, struct Paddle *paddle) {
+bool check_paddle_collision(struct GameContext *ctx) {
+  Ball *ball = &ctx->ball;
+  Paddle *paddle = &ctx->paddle;
   if (SDL_HasRectIntersectionFloat(&ball->rect, &paddle->rect)) {
     ball->dy *= -1.0f;
 
@@ -66,6 +69,7 @@ bool check_paddle_collision(Ball *ball, struct Paddle *paddle) {
     float current_speed = SDL_sqrtf(ball->dx * ball->dx + ball->dy * ball->dy);
     ball->dx = (ball->dx / current_speed) * BALL_SPEED;
     ball->dy = (ball->dy / current_speed) * BALL_SPEED;
+    ctx->on_collision(ctx, EVENT_PADDLE_HIT);
     return true;
   }
   return false;
