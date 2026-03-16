@@ -1,3 +1,5 @@
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_render.h>
 #define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
@@ -15,12 +17,16 @@ void render_gameplay(GameContext *ctx);
 void render_game_over(GameContext *ctx);
 void render_game_won(GameContext *ctx);
 void render(GameContext *ctx);
+void play_hit_sound(GameContext *ctx);
+bool init_ttf(GameContext *ctx);
+bool init_audio(GameContext *ctx);
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   (void)argc;                      // Unused
   (void)argv;                      // Unused
   srand((unsigned int)time(NULL)); // Seed random for particle effects
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
+
+  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
     SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
     return SDL_APP_FAILURE;
   }
@@ -37,28 +43,15 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
     return SDL_APP_FAILURE;
   }
 
-  // Enable VSync so we don't melt the GPU
   SDL_SetRenderVSync(ctx->renderer, 1);
 
   ctx->state = STATE_TITLE;
-  // reset_game(ctx);
 
   // Prorably not necessary, since we used SDL_calloc, which zeroes the memory
   memset(ctx->particles, 0, sizeof(ctx->particles));
 
-  if (!TTF_Init()) {
-    SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+  if (!init_ttf(ctx) || !init_audio(ctx))
     return SDL_APP_FAILURE;
-  }
-
-  // Load a font
-  ctx->font =
-      TTF_OpenFont("assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf", 24);
-
-  if (!ctx->font) {
-    SDL_Log("Failed to load font: %s", SDL_GetError());
-    return SDL_APP_FAILURE;
-  }
 
   return SDL_APP_CONTINUE;
 }
@@ -112,6 +105,15 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result) {
     if (ctx->font) {
       TTF_CloseFont(ctx->font);
     }
+    if (ctx->wav_data) {
+      SDL_free(ctx->wav_data);
+    }
+    if (ctx->sfx_stream) {
+      SDL_DestroyAudioStream(ctx->sfx_stream);
+    }
+    if (ctx->audio_device) {
+      SDL_CloseAudioDevice(ctx->audio_device);
+    }
     TTF_Quit();
   }
 }
@@ -126,10 +128,9 @@ void on_brick_hit(struct GameContext *ctx, struct Brick *brick) {
   int base_score = 100;
   int earned = base_score * ctx->combo_count; // More points for combos
   ctx->score += earned;
+  play_hit_sound(ctx);
   SDL_Log("Brick hit! Combo: %d, Score Earned: %d, Total Score: %d",
           ctx->combo_count, earned, ctx->score);
-  // TODO: add sound effect here
-  // TODO: increment score here
 }
 
 void reset_game(GameContext *ctx) {
@@ -156,28 +157,27 @@ void update_gameplay(GameContext *ctx) {
 
   if (ctx->ball_launched) {
     move_ball(&ctx->ball, delta_time);
+
+    // ball collision detection
     check_wall_collision(&ctx->ball);
+    check_ball_brick_collision(ctx, on_brick_hit);
     if (check_paddle_collision(&ctx->ball, &ctx->paddle)) {
       ctx->combo_count = 0; // Reset combo on paddle hit
     }
+    if (is_ball_out(&ctx->ball)) {
+      ctx->lives--;
+      ctx->ball_launched = false;
+      if (ctx->lives <= 0) {
+        ctx->state = STATE_GAME_OVER;
+      } else {
+        // Just reset the ball and paddle
+        init_paddle(&ctx->paddle);
+        init_ball(&ctx->ball);
+      }
+    }
+
   } else
     set_ball_on_paddle(&ctx->ball, &ctx->paddle);
-
-  if (is_ball_out(&ctx->ball)) {
-    ctx->lives--;
-    ctx->ball_launched = false;
-    SDL_Log("Ball lost! Lives remaining: %d", ctx->lives);
-    if (ctx->lives <= 0) {
-      SDL_Log("Game Over!");
-      ctx->state = STATE_GAME_OVER;
-    } else {
-      // Just reset the ball and paddle
-      init_paddle(&ctx->paddle);
-      init_ball(&ctx->ball);
-    }
-  }
-
-  check_ball_brick_collision(ctx, on_brick_hit);
 
   update_particles(ctx->particles, delta_time);
   update_score_texture(ctx);
@@ -259,4 +259,56 @@ void render(GameContext *ctx) {
   }
 
   SDL_RenderPresent(ctx->renderer);
+}
+
+void play_hit_sound(GameContext *ctx) {
+  SDL_Log("Playing hit sound...");
+  if (ctx->sfx_stream && ctx->wav_data) {
+    SDL_PutAudioStreamData(ctx->sfx_stream, ctx->wav_data, ctx->wav_length);
+    int queued = SDL_GetAudioStreamQueued(ctx->sfx_stream);
+    SDL_Log("Audio queued: %d bytes", queued);
+  }
+}
+
+bool init_ttf(GameContext *ctx) {
+  if (!TTF_Init()) {
+    SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+    return false;
+  }
+
+  ctx->font =
+      TTF_OpenFont("assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf", 24);
+  if (!ctx->font) {
+    SDL_Log("Failed to load font: %s", SDL_GetError());
+    return false;
+  }
+  return true;
+}
+
+bool init_audio(GameContext *ctx) {
+  if (!SDL_LoadWAV("assets/sounds/hit.wav", &ctx->wav_spec, &ctx->wav_data,
+                   &ctx->wav_length)) {
+    SDL_Log("Failed to load sound: %s", SDL_GetError());
+    return false;
+  }
+
+  ctx->audio_device =
+      SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+  if (!ctx->audio_device) {
+    SDL_Log("Failed to open audio device: %s", SDL_GetError());
+    return false;
+  }
+
+  ctx->sfx_stream = SDL_CreateAudioStream(&ctx->wav_spec, NULL);
+  if (!ctx->sfx_stream) {
+    SDL_Log("Failed to create audio stream: %s", SDL_GetError());
+    return false;
+  }
+
+  SDL_SetAudioStreamGain(ctx->sfx_stream, 1.0f);
+  SDL_BindAudioStream(ctx->audio_device, ctx->sfx_stream);
+  SDL_ResumeAudioDevice(ctx->audio_device);
+
+  SDL_Log("Using audio driver: %s", SDL_GetCurrentAudioDriver());
+  return true;
 }

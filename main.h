@@ -23,6 +23,7 @@ typedef enum {
 typedef struct GameContext {
   SDL_Window *window;
   SDL_Renderer *renderer;
+
   bool running;
   Paddle paddle;
   Ball ball;
@@ -32,6 +33,7 @@ typedef struct GameContext {
   bool right_pressed;
 
   Brick bricks[BRICK_ROWS * BRICK_COLS];
+
   uint64_t last_ticks;
   Particle particles[MAX_PARTICLES];
   float shake_timer_s;
@@ -45,9 +47,17 @@ typedef struct GameContext {
 
   int combo_count;
   GameState state;
+
   TTF_Font *font;
   SDL_Texture *score_texture;
   SDL_Texture *lives_texture;
+
+  SDL_AudioDeviceID audio_device;
+  SDL_AudioStream *sfx_stream;
+  Uint8 *wav_data;
+  Uint32 wav_length;
+  SDL_AudioSpec wav_spec;
+
 } GameContext;
 
 void reset_game(GameContext *ctx);
