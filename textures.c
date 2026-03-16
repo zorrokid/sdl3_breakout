@@ -2,6 +2,21 @@
 #include "textures.h"
 #include "main.h"
 
+bool init_ttf(GameContext *ctx) {
+  if (!TTF_Init()) {
+    SDL_Log("Couldn't initialize SDL_ttf: %s", SDL_GetError());
+    return false;
+  }
+
+  ctx->font =
+      TTF_OpenFont("assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf", 24);
+  if (!ctx->font) {
+    SDL_Log("Failed to load font: %s", SDL_GetError());
+    return false;
+  }
+  return true;
+}
+
 void update_score_texture(GameContext *ctx) {
   if (!ctx->font) {
     SDL_Log("Font not loaded, cannot render score.");
@@ -110,4 +125,17 @@ SDL_Texture *create_text_texture(SDL_Renderer *renderer, TTF_Font *font,
   // Clean up the surface
   SDL_DestroySurface(surface);
   return texture;
+}
+
+void cleanup_textures(GameContext *ctx) {
+  if (ctx->score_texture) {
+    SDL_DestroyTexture(ctx->score_texture);
+  }
+  if (ctx->lives_texture) {
+    SDL_DestroyTexture(ctx->lives_texture);
+  }
+  if (ctx->font) {
+    TTF_CloseFont(ctx->font);
+  }
+  TTF_Quit();
 }

@@ -3,6 +3,9 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "common.h"
+
+bool init_ttf(GameContext *ctx);
+void cleanup_textures(GameContext *ctx);
 void update_score_texture(GameContext *ctx);
 void update_lives_texture(GameContext *ctx);
 void render_score(GameContext *ctx);

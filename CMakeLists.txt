@@ -19,6 +19,10 @@ add_executable(breakout
     particles.c 
     events.c
     textures.c
+    collision.c
+    sfx.c
+    gfx.c
+    gameplay.c
 )
 
 # 3. Link the libraries
