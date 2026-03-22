@@ -11,7 +11,13 @@
 void reset_game(GameContext *ctx) {
   init_paddle(&ctx->paddle);
   init_ball(&ctx->ball);
-  init_bricks(ctx->bricks);
+
+  SDL_zero(ctx->brick_manager.grid);
+  ctx->brick_manager.head_row = 0;
+  ctx->brick_manager.scroll_offset = 0;
+  ctx->brick_manager.scroll_speed = 20.0f;
+
+  init_bricks(ctx);
   ctx->ball_launched = false;
   ctx->lives = 3;
   ctx->last_ticks = SDL_GetTicks();
@@ -29,6 +35,8 @@ void update_gameplay(GameContext *ctx) {
     delta_time = 0.1f;
 
   move_paddle(&ctx->paddle, ctx->left_pressed, ctx->right_pressed, delta_time);
+
+  update_scrolling(ctx, delta_time);
 
   if (ctx->ball_launched) {
     move_ball(&ctx->ball, delta_time);
@@ -58,7 +66,7 @@ void update_gameplay(GameContext *ctx) {
   update_score_texture(ctx);
   update_lives_texture(ctx);
 
-  if (check_win_condition(ctx->bricks)) {
+  if (check_win_condition(ctx)) {
     // TODO: Check if it's the last level, otherwise proceed to next level
     SDL_Log("You Win!");
     ctx->state = STATE_GAME_WON;

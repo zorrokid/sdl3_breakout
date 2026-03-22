@@ -1,10 +1,11 @@
 #include "particles.h"
+#include <stdio.h>
 #include <stdlib.h>
 
-void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color) {
+void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color,
+                       float cx, float cy) {
   int spawned = 0;
-  float cx = brick->rect.x + (brick->rect.w / 2.0f);
-  float cy = brick->rect.y + (brick->rect.h / 2.0f);
+  printf("Spawning burst at: (%.2f, %.2f)\n", cx, cy);
 
   for (int i = 0; i < MAX_PARTICLES && spawned < 15; i++) {
     if (!particles[i].active) {

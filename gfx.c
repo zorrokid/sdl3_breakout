@@ -8,7 +8,7 @@
 void render_gameplay(GameContext *ctx) {
   render_paddle(ctx->renderer, &ctx->paddle);
   render_ball(ctx->renderer, &ctx->ball);
-  render_bricks(ctx->renderer, ctx->bricks);
+  render_bricks(ctx);
   render_particles(ctx->renderer, ctx->particles);
   render_score(ctx);
   render_lives(ctx);
@@ -16,7 +16,7 @@ void render_gameplay(GameContext *ctx) {
 
 void render_game_over(GameContext *ctx) {
   render_paddle(ctx->renderer, &ctx->paddle);
-  render_bricks(ctx->renderer, ctx->bricks);
+  render_bricks(ctx);
 
   // Dim the screen with a semi-transparent overlay
   SDL_SetRenderDrawBlendMode(ctx->renderer, SDL_BLENDMODE_BLEND);

@@ -39,12 +39,10 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_SetRenderLogicalPresentation(ctx->renderer, SCREEN_WIDTH, SCREEN_HEIGHT,
                                    SDL_LOGICAL_PRESENTATION_LETTERBOX);
 
-  // Create a 800x600 window and a renderer with VSync
-  /*if (!SDL_CreateWindowAndRenderer("Breakout SDL3", SCREEN_WIDTH,
-  SCREEN_HEIGHT, 0, &ctx->window, &ctx->renderer)) { return SDL_APP_FAILURE;
-  }*/
-
   SDL_SetRenderVSync(ctx->renderer, 1);
+
+  SDL_zero(ctx->brick_manager);
+  ctx->brick_manager.scroll_speed = 20.0f;
 
   ctx->state = STATE_TITLE;
   ctx->on_collision = handle_collision_logic;

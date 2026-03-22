@@ -12,6 +12,9 @@
 
 #define BRICK_ROWS 5
 #define BRICK_COLS 10
+#define MAX_BRICK_ROWS 25
+#define MAX_BRICKS (MAX_BRICK_ROWS * BRICK_COLS)
+
 #define BRICK_WIDTH 75.0f
 #define BRICK_HEIGHT 20.0f
 #define BRICK_PADDING 5.0f
@@ -82,6 +85,14 @@ typedef void (*CollisionCallback)(void *userdata, int event_type);
 
 typedef enum { EVENT_PADDLE_HIT, EVENT_BRICK_HIT, EVENT_WALL_HIT } GameEvent;
 
+typedef struct {
+  Brick grid[MAX_BRICK_ROWS][BRICK_COLS];
+  int head_row;
+  float scroll_offset;
+  float scroll_speed;
+  int total_rows_spawned;
+} BrickManager;
+
 typedef struct GameContext {
   SDL_Window *window;
   SDL_Renderer *renderer;
@@ -94,7 +105,7 @@ typedef struct GameContext {
   bool left_pressed;
   bool right_pressed;
 
-  Brick bricks[BRICK_ROWS * BRICK_COLS];
+  // Brick bricks[MAX_BRICKS];
 
   uint64_t last_ticks;
   Particle particles[MAX_PARTICLES];
@@ -119,6 +130,10 @@ typedef struct GameContext {
 
   CollisionCallback on_collision;
 
+  // TODO: move to BrickManager
+  // float scroll_offset; // current pixel shift
+  // float scroll_speed;  // pixels per sec
+  BrickManager brick_manager;
 } GameContext;
 
 static const char *SFX_PATHS[SFX_COUNT] = {"assets/sounds/brick_hit.wav",
