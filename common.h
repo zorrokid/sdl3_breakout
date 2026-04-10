@@ -18,6 +18,8 @@
 #define BRICK_WIDTH 75.0f
 #define BRICK_HEIGHT 20.0f
 #define BRICK_PADDING 5.0f
+#define BRICK_TOTAL_HEIGHT (BRICK_HEIGHT + BRICK_PADDING)
+#define BRICK_TOTAL_WIDTH (BRICK_WIDTH + BRICK_PADDING)
 
 #define PADDLE_WIDTH 100.0f
 #define PADDLE_HEIGHT 20.0f
@@ -85,11 +87,23 @@ typedef void (*CollisionCallback)(void *userdata, int event_type);
 
 typedef enum { EVENT_PADDLE_HIT, EVENT_BRICK_HIT, EVENT_WALL_HIT } GameEvent;
 
+// Manages the grid of bricks, their spawning, and scrolling
 typedef struct {
+  // Scrolling bricks are stored in grid which is used as circular buffer, where
+  // head_row indicates the topmost row currently on screen.
+  //
+  // When scroll offset exceeds BRICK_HEIGHT, head_row is decremented (wrapping
+  // around) and a new row is spawned at the new head_row index.
+  //
+  // Actual grid row index: (head_row + visual_row) % MAX_BRICK_ROWS
   Brick grid[MAX_BRICK_ROWS][BRICK_COLS];
+  // The index of the topmost row of bricks currently on the screen
   int head_row;
+  // The current pixel offset for smooth scrolling (0 to BRICK_HEIGHT)
   float scroll_offset;
+  // The speed at which bricks scroll down (pixels per second)
   float scroll_speed;
+  // Total number of rows spawned since the start of the game
   int total_rows_spawned;
 } BrickManager;
 
@@ -104,8 +118,6 @@ typedef struct GameContext {
 
   bool left_pressed;
   bool right_pressed;
-
-  // Brick bricks[MAX_BRICKS];
 
   uint64_t last_ticks;
   Particle particles[MAX_PARTICLES];
@@ -130,9 +142,6 @@ typedef struct GameContext {
 
   CollisionCallback on_collision;
 
-  // TODO: move to BrickManager
-  // float scroll_offset; // current pixel shift
-  // float scroll_speed;  // pixels per sec
   BrickManager brick_manager;
 } GameContext;
 
@@ -140,4 +149,3 @@ static const char *SFX_PATHS[SFX_COUNT] = {"assets/sounds/brick_hit.wav",
                                            "assets/sounds/paddle_hit.wav"};
 
 #endif // COMMON_H
-       //
