@@ -1,4 +1,6 @@
 #include "ball.h"
+#include "paddle.h"
+#include <math.h>
 
 void init_ball(Ball *ball) {
   ball->rect = (SDL_FRect){0, 0, BALL_SIZE, BALL_SIZE};
@@ -34,38 +36,42 @@ void check_wall_collision(Ball *ball) {
   }
 }
 
+float calculate_bounce_angle(Ball *ball, Paddle *paddle) {
+  // Calculate the hit position relative to the paddle center
+  Coord ball_center = get_ball_center(ball);
+  Coord paddle_center = get_paddle_center(paddle);
+  float ball_dist = ball_center.x - paddle_center.x;
+
+  // Multiplier determines how much the ball's horizontal speed changes based
+  // on where it hits the paddle. Hitting the center results in no horizontal
+  // change, while hitting the edges results in maximum horizontal change.
+  //
+  // Range -0.5 (left edge) to 0.5 (right edge)
+  float multiplier = ball_dist / paddle->rect.w;
+
+  return multiplier * MAX_BOUNCE_ANGLE;
+}
+
 bool check_paddle_collision(GameContext *ctx) {
   Ball *ball = &ctx->ball;
   Paddle *paddle = &ctx->paddle;
   if (SDL_HasRectIntersectionFloat(&ball->rect, &paddle->rect)) {
-    ball->dy *= -1.0f;
-
     // snap the ball to the top of the paddle to prevent sticking
     ball->rect.y = paddle->rect.y - ball->rect.h - 1.0f;
 
-    // Calculate the it position relative to the paddle center
-    float ball_center_x = ball->rect.x + (ball->rect.w / 2.0f);
-    float paddle_center_x = paddle->rect.x + (paddle->rect.w / 2.0f);
-    float ball_dist = ball_center_x - paddle_center_x;
+    // Get the base bounce angle based on where the ball hit the paddle
+    float bounce_angle = calculate_bounce_angle(ball, paddle);
 
-    // Range -0.5 (left edge) to 0.5 (right edge)
-    float multiplier = ball_dist / paddle->rect.w;
-
-    // Apply the "English"
-    float max_bounce_angle = 2.0f;
-    ball->dx = multiplier * (BALL_SPEED * max_bounce_angle);
-
-    // Adjust the ball's horizontal speed based on the paddle's movement to add
-    // more "English"
+    // Incorporate paddle movement into the bounce angle
     if (paddle->last_movement > 0)
-      ball->dx += (PADDLE_SPEED * 0.2f);
+      bounce_angle += 0.15f; // Radian shift
     if (paddle->last_movement < 0)
-      ball->dx -= (PADDLE_SPEED * 0.2f);
+      bounce_angle -= 0.15f; // Radian shift
 
-    // Normalize the ball's speed to maintain a consistent overall speed
-    float current_speed = SDL_sqrtf(ball->dx * ball->dx + ball->dy * ball->dy);
-    ball->dx = (ball->dx / current_speed) * BALL_SPEED;
-    ball->dy = (ball->dy / current_speed) * BALL_SPEED;
+    // Set velocity based on the bounce angle
+    ball->dx = BALL_SPEED * SDL_sinf(bounce_angle);
+    // We negate the Y velocity to change the direction upwards
+    ball->dy = -BALL_SPEED * SDL_cosf(bounce_angle);
 
     CollisionEvent event = {.type = EVENT_PADDLE_HIT};
     ctx->on_collision(ctx, &event);
@@ -88,4 +94,11 @@ bool is_ball_out(Ball *ball) { return ball->rect.y > SCREEN_HEIGHT; }
 void render_ball(SDL_Renderer *renderer, Ball *ball) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // yellow
   SDL_RenderFillRect(renderer, &ball->rect);
+}
+
+Coord get_ball_center(const Ball *ball) {
+  Coord center;
+  center.x = ball->rect.x + (ball->rect.w / 2.0f);
+  center.y = ball->rect.y + (ball->rect.h / 2.0f);
+  return center;
 }

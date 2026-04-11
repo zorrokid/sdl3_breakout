@@ -9,6 +9,7 @@
 
 #define BALL_SIZE 16.0f
 #define BALL_SPEED 350.0f
+#define MAX_BOUNCE_ANGLE 2.0f
 
 #define BRICK_ROWS 5
 #define BRICK_COLS 10

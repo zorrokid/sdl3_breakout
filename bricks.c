@@ -1,6 +1,7 @@
 #include "bricks.h"
 #include "common.h"
 #include "particles.h"
+#include "ball.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -44,13 +45,6 @@ Coord get_brick_center(SDL_FRect brick_rect) {
   Coord center;
   center.x = brick_rect.x + (brick_rect.w / 2.0f);
   center.y = brick_rect.y + (brick_rect.h / 2.0f);
-  return center;
-}
-
-Coord get_ball_center(const Ball *ball) {
-  Coord center;
-  center.x = ball->rect.x + (ball->rect.w / 2.0f);
-  center.y = ball->rect.y + (ball->rect.h / 2.0f);
   return center;
 }
 

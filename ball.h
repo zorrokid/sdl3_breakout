@@ -9,5 +9,6 @@ void render_ball(SDL_Renderer *renderer, struct Ball *ball);
 bool is_ball_out(Ball *ball);
 void check_wall_collision(Ball *ball);
 bool check_paddle_collision(GameContext *ctx);
+Coord get_ball_center(const Ball *ball);
 
 #endif // BALL_H

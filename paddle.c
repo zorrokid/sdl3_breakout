@@ -59,3 +59,10 @@ void render_paddle(SDL_Renderer *renderer, Paddle *paddle) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // white
   SDL_RenderFillRect(renderer, &paddle->rect);
 }
+
+Coord get_paddle_center(const Paddle *paddle) {
+  Coord center;
+  center.x = paddle->rect.x + (paddle->rect.w / 2.0f);
+  center.y = paddle->rect.y + (paddle->rect.h / 2.0f);
+  return center;
+}
