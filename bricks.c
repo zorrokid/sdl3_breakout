@@ -138,7 +138,7 @@ void update_scrolling(GameContext *ctx, float dt) {
 
   // Reset the scroll offset and move bricks down when it exceeds the brick
   // height
-  if (ctx->brick_manager.scroll_offset >= BRICK_HEIGHT) {
+  if (ctx->brick_manager.scroll_offset >= BRICK_TOTAL_HEIGHT) {
     ctx->brick_manager.scroll_offset = 0;
 
     // move the header pointer "up" for new row, and wrap around if it goes
