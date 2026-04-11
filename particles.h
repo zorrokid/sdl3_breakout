@@ -2,8 +2,7 @@
 #define PARTICLES_H
 #include "common.h"
 
-void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color,
-                       float cx, float cy);
+void spawn_brick_burst(Particle *particles, SDL_Color color, Coord location);
 void update_particles(Particle *particles, float delta_time);
 void render_particles(SDL_Renderer *renderer, Particle *particles);
 

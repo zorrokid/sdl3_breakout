@@ -66,7 +66,10 @@ bool check_paddle_collision(GameContext *ctx) {
     float current_speed = SDL_sqrtf(ball->dx * ball->dx + ball->dy * ball->dy);
     ball->dx = (ball->dx / current_speed) * BALL_SPEED;
     ball->dy = (ball->dy / current_speed) * BALL_SPEED;
-    ctx->on_collision(ctx, EVENT_PADDLE_HIT);
+
+    CollisionEvent event = {.type = EVENT_PADDLE_HIT};
+    ctx->on_collision(ctx, &event);
+
     return true;
   }
   return false;

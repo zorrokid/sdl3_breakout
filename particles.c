@@ -2,15 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void spawn_brick_burst(Particle *particles, Brick *brick, SDL_Color color,
-                       float cx, float cy) {
+void spawn_brick_burst(Particle *particles, SDL_Color color, Coord location) {
   int spawned = 0;
-  printf("Spawning burst at: (%.2f, %.2f)\n", cx, cy);
 
   for (int i = 0; i < MAX_PARTICLES && spawned < 15; i++) {
     if (!particles[i].active) {
       particles[i].active = true;
-      particles[i].rect = (SDL_FRect){cx, cy, 12.0f, 12.0f}; // Tiny squares
+      particles[i].rect =
+          (SDL_FRect){location.x, location.y, 12.0f, 12.0f}; // Tiny squares
 
       // Random direction and speed
       // (rand() % 200 - 100) gives a range of -100 to 100

@@ -5,7 +5,7 @@
 #include <math.h>
 
 // Calculate the starting x position to center the bricks on the screen
-float get_start_x() {
+float get_brick_row_start_x() {
   float total_width = (BRICK_COLS * BRICK_TOTAL_WIDTH) - BRICK_PADDING;
   return (SCREEN_WIDTH - total_width) / 2.0f;
 }
@@ -23,7 +23,7 @@ void render_bricks(GameContext *ctx) {
         // Calculate the position to draw the brick based on its column and row
         // index
         SDL_FRect draw_rect = brick->rect;
-        draw_rect.x = get_start_x() + c * BRICK_TOTAL_WIDTH;
+        draw_rect.x = get_brick_row_start_x() + c * BRICK_TOTAL_WIDTH;
 
         // The y position is based on the visual row index (i) and the scroll
         // offset. The topmost row (i=0) should be just above the screen, so we
@@ -38,6 +38,42 @@ void render_bricks(GameContext *ctx) {
       }
     }
   }
+}
+
+Coord get_brick_center(SDL_FRect brick_rect) {
+  Coord center;
+  center.x = brick_rect.x + (brick_rect.w / 2.0f);
+  center.y = brick_rect.y + (brick_rect.h / 2.0f);
+  return center;
+}
+
+Coord get_ball_center(const Ball *ball) {
+  Coord center;
+  center.x = ball->rect.x + (ball->rect.w / 2.0f);
+  center.y = ball->rect.y + (ball->rect.h / 2.0f);
+  return center;
+}
+
+CollisionSide check_ball_brick_collision_side(GameContext *ctx,
+                                              Coord brick_center,
+                                              Coord ball_center) {
+  // Relative distance (vector from brick center to ball center)
+  float dx = ball_center.x - brick_center.x;
+  float dy = ball_center.y - brick_center.y;
+
+  // Normalize the distance between center of the ball
+  // and center of the brick: calculate the percentage
+  // how far the ball center is from brick center
+
+  float brick_width_half = BRICK_WIDTH / 2.0f;
+  float brick_height_half = BRICK_HEIGHT / 2.0f;
+
+  // percentage from side
+  float dx_percentage = SDL_fabs(dx / brick_width_half);
+  // percentage from top / bottom
+  float dy_percentage = SDL_fabs(dy / brick_height_half);
+
+  return dx_percentage > dy_percentage ? HIT_SIDE : HIT_TOP_BOTTOM;
 }
 
 void init_bricks(GameContext *ctx) {
@@ -55,6 +91,8 @@ void check_ball_brick_collision(GameContext *ctx) {
   if (brick) {
 
     int actual_row = get_brick_array_row(&ctx->brick_manager, ctx->ball.rect.y);
+    if (actual_row == -1)
+      return; // Out of bounds, should not happen since we already got a brick
     int visual_row_index =
         (actual_row - ctx->brick_manager.head_row + MAX_BRICK_ROWS) %
         MAX_BRICK_ROWS;
@@ -64,50 +102,32 @@ void check_ball_brick_collision(GameContext *ctx) {
     float visual_y = ((visual_row_index - 1) * BRICK_TOTAL_HEIGHT) +
                      ctx->brick_manager.scroll_offset;
 
-    float visual_x = get_start_x() + col * BRICK_TOTAL_WIDTH;
+    float visual_x = get_brick_row_start_x() + col * BRICK_TOTAL_WIDTH;
 
-    // calculate center of brick to center of ball vector to detect
-    // if the collision is top / bottom or side of a brick.
+    // Calculate a center of brick to center of the ball vector to detect
+    // if the collision is top / bottom or side of a brick, and to use the
+    // center of the brick for spawning particles.
 
     SDL_FRect physics_rect = {visual_x, visual_y, BRICK_WIDTH, BRICK_HEIGHT};
+    Coord ball_center = get_ball_center(&ctx->ball);
+    Coord brick_center = get_brick_center(physics_rect);
 
-    // TODO: these calculations are not working as reliable as they were without
-    // brics scrolling sometimes ball bounces up breaking whole column of bricks
+    CollisionSide side =
+        check_ball_brick_collision_side(ctx, brick_center, ball_center);
 
-    // Centers
-    float ball_cx = ctx->ball.rect.x + (ctx->ball.rect.w / 2.0f);
-    float ball_cy = ctx->ball.rect.y + (ctx->ball.rect.h / 2.0f);
-    float brick_cx = physics_rect.x + (physics_rect.w / 2.0f);
-    float brick_cy = physics_rect.y + (physics_rect.h / 2.0f);
-
-    // relative distance (Vector from brick center to ball center)
-    float dx = ball_cx - brick_cx;
-    float dy = ball_cy - brick_cy;
-
-    // we need to normalize the distance between center of the ball
-    // and center of the brick by calculating the percentage
-    // how far the ball center is from brick center
-    float brick_width_half = physics_rect.w / 2.0f;
-    float brick_height_half = physics_rect.h / 2.0f;
-
-    // percentage from side
-    float dx_percentage = SDL_fabs(dx / brick_width_half);
-    // percentage from top / bottom
-    float dy_percentage = SDL_fabs(dy / brick_height_half);
-
-    if (dx_percentage > dy_percentage) {
-      // side hit
+    if (side == HIT_SIDE) {
       ctx->ball.dx *= -1.0f;
     } else {
       // top / bottom hit
       ctx->ball.dy *= -1.0f;
     }
 
-    spawn_brick_burst(ctx->particles, brick, (SDL_Color){255, 0, 0, 255},
-                      brick_cx, brick_cy);
-
-    if (ctx->on_collision)
-      ctx->on_collision(ctx, EVENT_BRICK_HIT);
+    if (ctx->on_collision) {
+      CollisionEvent event = {.type = EVENT_BRICK_HIT,
+                              .position = brick_center,
+                              .data.brick_hit = {.brick = brick, .side = side}};
+      ctx->on_collision(ctx, &event);
+    }
 
     brick->active = false;
   }
@@ -175,7 +195,7 @@ int get_brick_array_row(const BrickManager *bm, float screen_y) {
 }
 
 int get_brick_col(float screen_x) {
-  int col = (int)(((screen_x - get_start_x()) / BRICK_TOTAL_WIDTH));
+  int col = (int)(((screen_x - get_brick_row_start_x()) / BRICK_TOTAL_WIDTH));
   if (col < 0 || col >= BRICK_COLS)
     return -1;
   return col;

@@ -68,6 +68,10 @@ typedef struct Brick {
   bool active;
 } Brick;
 
+typedef struct Coord {
+  float x, y;
+} Coord;
+
 typedef struct {
   SDL_FRect rect;
   float dx, dy;
@@ -83,9 +87,40 @@ typedef struct {
   SDL_AudioStream *stream;
 } SoundEffect;
 
-typedef void (*CollisionCallback)(void *userdata, int event_type);
+typedef enum {
+  EVENT_PADDLE_HIT,
+  EVENT_BRICK_HIT,
+  EVENT_WALL_HIT
+} CollisionType;
 
-typedef enum { EVENT_PADDLE_HIT, EVENT_BRICK_HIT, EVENT_WALL_HIT } GameEvent;
+typedef enum { HIT_NONE, HIT_SIDE, HIT_TOP_BOTTOM } CollisionSide;
+
+typedef struct {
+  CollisionType type;
+  Coord position;
+
+  union {
+    struct {
+      Brick *brick;
+      CollisionSide side;
+    } brick_hit;
+
+    struct {
+      float hit_position; // 0.0 (left edge) to 1.0 (right edge) of the paddle
+    } paddle_hit;
+
+    struct {
+      int wall_hit; // 0 = left, 1 = right, 2 = top
+    } wall_hit;
+
+  } data;
+
+} CollisionEvent;
+
+typedef struct GameContext GameContext;
+
+typedef void (*CollisionCallback)(struct GameContext *ctx,
+                                  const CollisionEvent *event);
 
 // Manages the grid of bricks, their spawning, and scrolling
 typedef struct {
