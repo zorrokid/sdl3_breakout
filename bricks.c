@@ -11,12 +11,17 @@ float get_brick_row_start_x() {
   return (SCREEN_WIDTH - total_width) / 2.0f;
 }
 
+// Map the visual row index to actual array row index using the circular buffer
+// rotation. E.g. if head_row is 5, then screen row 0 is actually row 5 in the
+// array.
+int get_actual_row_index(const BrickManager *bm, int visual_row_index) {
+  return (bm->head_row + visual_row_index) % MAX_BRICK_ROWS;
+}
+
 void render_bricks(GameContext *ctx) {
   for (int i = 0; i < MAX_BRICK_ROWS; i++) {
 
-    // Map the visual row index to physical grid row index
-    // E.g. if head_row is 5, then screen row 0 is actually row 5 in the array
-    int actual_row_index = (ctx->brick_manager.head_row + i) % MAX_BRICK_ROWS;
+    int actual_row_index = get_actual_row_index(&ctx->brick_manager, i);
 
     for (int c = 0; c < BRICK_COLS; c++) {
       Brick *brick = &ctx->brick_manager.grid[actual_row_index][c];
@@ -72,9 +77,24 @@ CollisionSide check_ball_brick_collision_side(GameContext *ctx,
 
 void init_bricks(GameContext *ctx) {
   for (int i = 0; i < 6; i++) {
-    int actual_row_index = (ctx->brick_manager.head_row + i) % MAX_BRICK_ROWS;
-    spawn_new_row(ctx, actual_row_index);
+    spawn_new_row(ctx, get_actual_row_index(&ctx->brick_manager, i));
   }
+}
+
+int get_visual_brick_row(const BrickManager *bm, float screen_y) {
+  // brick scroll offset need to be taken into account to map to correct visual
+  // row for collision detection
+  float relative_y = screen_y - bm->scroll_offset;
+
+  // We add 1 to the visual row calculation because the topmost row starts just
+  // above the screen (at -BRICK_HEIGHT).
+  int visual_row = (int)SDL_floorf(relative_y / BRICK_TOTAL_HEIGHT) + 1;
+
+  // check bounds
+  if (visual_row < 0 || visual_row >= MAX_BRICK_ROWS)
+    return -1;
+
+  return visual_row;
 }
 
 void check_ball_brick_collision(GameContext *ctx) {
@@ -84,12 +104,14 @@ void check_ball_brick_collision(GameContext *ctx) {
 
   if (brick) {
 
-    int actual_row = get_brick_array_row(&ctx->brick_manager, ctx->ball.rect.y);
+    int visual_row_index =
+        get_visual_brick_row(&ctx->brick_manager, ctx->ball.rect.y);
+    if (visual_row_index == -1)
+      return; // Out of bounds, should not happen since we already got a brick
+    int actual_row =
+        get_actual_row_index(&ctx->brick_manager, visual_row_index);
     if (actual_row == -1)
       return; // Out of bounds, should not happen since we already got a brick
-    int visual_row_index =
-        (actual_row - ctx->brick_manager.head_row + MAX_BRICK_ROWS) %
-        MAX_BRICK_ROWS;
 
     int col = get_brick_col(ctx->ball.rect.x);
 
@@ -169,23 +191,10 @@ void update_scrolling(GameContext *ctx, float dt) {
 
 int get_brick_array_row(const BrickManager *bm, float screen_y) {
   // This reverses the rendering math to find the visual row index:
-
-  // brick scroll offset need to be taken into account to map to correct visual
-  // row for collision detection
-  float relative_y = screen_y - bm->scroll_offset;
-
-  // We add 1 to the visual row calculation because the topmost row starts just
-  // above the screen (at -BRICK_HEIGHT).
-  int visual_row = (int)SDL_floorf(relative_y / BRICK_TOTAL_HEIGHT) + 1;
-
-  // check bounds
-  if (visual_row < 0 || visual_row >= MAX_BRICK_ROWS)
-    return -1;
-
-  // Map the visual row index to the actual array index using the circular
-  // buffer rotation
-  int array_row = (bm->head_row + visual_row) % MAX_BRICK_ROWS;
-  return array_row;
+  int visual_row = get_visual_brick_row(bm, screen_y);
+  if (visual_row == -1)
+    return -1; // Out of bounds
+  return get_actual_row_index(bm, visual_row);
 }
 
 int get_brick_col(float screen_x) {
