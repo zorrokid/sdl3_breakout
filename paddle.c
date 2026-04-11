@@ -49,10 +49,16 @@ void move_paddle(Paddle *paddle, bool left_pressed, bool right_pressed,
   paddle->last_movement = paddle_move;
 
   // Check screen boundaries
-  if (paddle->rect.x < 0)
+  if (paddle->rect.x < 0) {
     paddle->rect.x = 0;
-  if (paddle->rect.x > SCREEN_WIDTH - paddle->rect.w)
+    paddle->velocity *=
+        -0.5f; // Bounce back with reduced speed if hitting the wall
+  }
+  if (paddle->rect.x > SCREEN_WIDTH - paddle->rect.w) {
     paddle->rect.x = SCREEN_WIDTH - paddle->rect.w;
+    paddle->velocity *=
+        -0.5f; // Bounce back with reduced speed if hitting the wall
+  }
 }
 
 void render_paddle(SDL_Renderer *renderer, Paddle *paddle) {

@@ -9,7 +9,7 @@
 
 #define BALL_SIZE 16.0f
 #define BALL_SPEED 350.0f
-#define MAX_BOUNCE_ANGLE 2.0f
+#define MAX_BOUNCE_ANGLE 1.2f
 
 #define BRICK_ROWS 5
 #define BRICK_COLS 10
@@ -46,7 +46,7 @@ typedef enum {
 typedef struct Paddle {
   SDL_FRect rect;
   // This is used to calculate the ball's bounce angle based on how fast and
-  // what direction the paddle is moving
+  // what direction and speed the paddle is moving
   float last_movement;
   // current speed
   float velocity;

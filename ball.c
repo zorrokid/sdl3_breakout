@@ -41,13 +41,16 @@ float calculate_bounce_angle(Ball *ball, Paddle *paddle) {
   Coord ball_center = get_ball_center(ball);
   Coord paddle_center = get_paddle_center(paddle);
   float ball_dist = ball_center.x - paddle_center.x;
+  float half_width = paddle->rect.w / 2.0f;
 
   // Multiplier determines how much the ball's horizontal speed changes based
   // on where it hits the paddle. Hitting the center results in no horizontal
   // change, while hitting the edges results in maximum horizontal change.
-  //
-  // Range -0.5 (left edge) to 0.5 (right edge)
-  float multiplier = ball_dist / paddle->rect.w;
+  // Range -1.0 (left edge) to 1.0 (right edge)
+  float multiplier = ball_dist / half_width;
+  float base_angle = multiplier * MAX_BOUNCE_ANGLE;
+
+  float paddle_speed_factor = paddle->last_movement / paddle->max_speed;
 
   return multiplier * MAX_BOUNCE_ANGLE;
 }
@@ -67,6 +70,12 @@ bool check_paddle_collision(GameContext *ctx) {
       bounce_angle += 0.15f; // Radian shift
     if (paddle->last_movement < 0)
       bounce_angle -= 0.15f; // Radian shift
+
+    // clamp the bounce angle to prevent it from being too flat
+    if (bounce_angle > MAX_BOUNCE_ANGLE)
+      bounce_angle = MAX_BOUNCE_ANGLE;
+    if (bounce_angle < -MAX_BOUNCE_ANGLE)
+      bounce_angle = -MAX_BOUNCE_ANGLE;
 
     // Set velocity based on the bounce angle
     ball->dx = BALL_SPEED * SDL_sinf(bounce_angle);

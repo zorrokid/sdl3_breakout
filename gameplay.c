@@ -15,7 +15,7 @@ void reset_game(GameContext *ctx) {
   SDL_zero(ctx->brick_manager.grid);
   ctx->brick_manager.head_row = 0;
   ctx->brick_manager.scroll_offset = 0;
-  ctx->brick_manager.scroll_speed = 20.0f;
+  ctx->brick_manager.scroll_speed = 2.0f;
 
   init_bricks(ctx);
   ctx->ball_launched = false;

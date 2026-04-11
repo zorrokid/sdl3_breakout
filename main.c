@@ -42,7 +42,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]) {
   SDL_SetRenderVSync(ctx->renderer, 1);
 
   SDL_zero(ctx->brick_manager);
-  ctx->brick_manager.scroll_speed = 20.0f;
+  ctx->brick_manager.scroll_speed = 1.0f;
 
   ctx->state = STATE_TITLE;
   ctx->on_collision = handle_collision_logic;
